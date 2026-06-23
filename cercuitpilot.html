@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CercuitPilot">
+<meta name="theme-color" content="#060d08">
+<title>CercuitPilot</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060d08;--c:#0d1a10;--c2:#142018;--c3:#1c2e20;
+  --bdr:rgba(0,230,118,.1);--bdr2:rgba(0,230,118,.22);
+  --g:#00e676;--gd:#00c853;--gp:rgba(0,230,118,.08);--gdim:#1e5c2e;
+  --glw:0 0 12px rgba(0,230,118,.22),0 0 24px rgba(0,230,118,.1);
+  --amb:#ffab00;--ap:rgba(255,171,0,.1);
+  --cyn:#00b8d4;--cp:rgba(0,184,212,.1);
+  --red:#ff5252;--rp:rgba(255,82,82,.1);
+  --pur:#ea80fc;--pp:rgba(234,128,252,.1);
+  --txt:#c8e6c9;--txt2:#5a8a60;--txt3:#2e4a32;
+  --r:10px;--rsm:7px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:16px;-webkit-text-size-adjust:100%;overflow-x:hidden;}
+body{font-family:'Space Grotesk',-apple-system,sans-serif;background:var(--bg);color:var(--txt);min-height:100dvh;padding-bottom:calc(62px + env(safe-area-inset-bottom));max-width:600px;margin:0 auto;-webkit-font-smoothing:antialiased;}
+button{cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;}
+input,select,textarea{font-family:inherit;outline:none;}
+
+/* SCAN LINE OVERLAY */
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.03) 2px,rgba(0,0,0,.03) 4px);pointer-events:none;z-index:999;}
+
+/* MODAL */
+.modal-over{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;}
+.modal-card{background:var(--c);border:1px solid var(--bdr2);border-radius:14px;padding:26px 20px;width:100%;max-width:380px;box-shadow:var(--glw);}
+.modal-logo{width:52px;height:52px;background:var(--bg);border:1px solid var(--bdr2);border-radius:13px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+.modal-h{font-size:1.3rem;font-weight:700;text-align:center;margin-bottom:5px;color:var(--g);}
+.modal-sub{font-size:.82rem;color:var(--txt2);text-align:center;margin-bottom:16px;line-height:1.5;}
+.av-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-bottom:14px;}
+.av-btn{font-size:1.25rem;padding:7px 4px;border:1.5px solid transparent;border-radius:7px;background:var(--c2);cursor:pointer;text-align:center;}
+.av-btn.sel{border-color:var(--g);box-shadow:var(--glw);}
+.modal-inp{width:100%;height:46px;border:1px solid var(--bdr2);border-radius:var(--rsm);background:var(--c2);color:var(--txt);font-size:1rem;padding:0 14px;margin-bottom:11px;}
+.modal-go{width:100%;padding:13px;background:var(--g);color:var(--bg);border:none;border-radius:var(--rsm);font-size:1rem;font-weight:700;letter-spacing:.02em;}
+.modal-go:active{opacity:.85;}
+.modal-note{font-size:11px;color:var(--txt3);text-align:center;margin-top:9px;}
+.switch-link{font-size:12px;color:var(--g);text-align:center;margin-top:7px;cursor:pointer;text-decoration:underline;}
+.cert-modal{text-align:center;padding:10px 0;}
+.cert-title{font-size:1.5rem;font-weight:700;color:var(--g);margin-bottom:4px;}
+.cert-sub{font-size:.85rem;color:var(--txt2);margin-bottom:16px;}
+.cert-badge{font-size:3rem;margin-bottom:10px;}
+.cert-score{font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:700;color:var(--g);margin-bottom:4px;}
+.cert-detail{font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:16px;}
+
+/* HEADER */
+#hdr{position:sticky;top:0;z-index:100;background:rgba(6,13,8,.95);border-bottom:1px solid var(--bdr);backdrop-filter:blur(8px);padding:0 14px;height:52px;display:flex;align-items:center;gap:10px;}
+.logo-box{width:34px;height:34px;background:var(--bg);border:1px solid var(--bdr2);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:var(--glw);}
+.logo-name{font-size:14px;font-weight:700;letter-spacing:-.02em;color:var(--txt);white-space:nowrap;flex-shrink:0;}
+.logo-name em{color:var(--g);font-style:normal;}
+.xp-wrap{flex:1;display:flex;align-items:center;gap:7px;min-width:0;}
+.lvl-pill{background:var(--gp);border:1px solid var(--bdr2);color:var(--g);font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;white-space:nowrap;font-family:'JetBrains Mono',monospace;}
+.xp-track{flex:1;height:5px;background:var(--c2);border-radius:3px;overflow:hidden;}
+.xp-bar{height:100%;background:var(--g);border-radius:3px;transition:width .6s ease;box-shadow:0 0 6px rgba(0,230,118,.5);}
+.xp-num{font-size:10px;color:var(--txt3);font-family:'JetBrains Mono',monospace;white-space:nowrap;}
+.hdr-av{font-size:1.2rem;cursor:pointer;flex-shrink:0;}
+
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;max-width:600px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);height:calc(58px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:rgba(6,13,8,.95);border-top:1px solid var(--bdr);backdrop-filter:blur(8px);z-index:100;}
+.nbtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:transparent;color:var(--txt3);font-size:9px;font-weight:600;letter-spacing:.04em;transition:color .15s;}
+.nbtn svg{width:22px;height:22px;transition:filter .15s;}
+.nbtn.on{color:var(--g);}
+.nbtn.on svg{filter:drop-shadow(0 0 4px rgba(0,230,118,.6));}
+
+/* PAGES + TABS */
+main{padding-top:52px;}
+.page{display:none;}.page.on{display:block;}
+.tab-bar{display:flex;overflow-x:auto;background:var(--c);border-bottom:1px solid var(--bdr);-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.tab-bar::-webkit-scrollbar{display:none;}
+.tb-btn{flex-shrink:0;padding:11px 14px;border:none;background:transparent;color:var(--txt2);font-size:12px;font-weight:600;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.tb-btn.on{color:var(--g);border-bottom-color:var(--g);}
+.tc{display:none;}.tc.on{display:block;}
+
+/* SHARED */
+.pad{padding:14px;}
+.mb{margin-bottom:12px;}
+.sec-ttl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--txt3);margin-bottom:9px;}
+.card{background:var(--c);border:1px solid var(--bdr);border-radius:var(--r);}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;}
+.btn-g{display:block;width:100%;padding:13px;background:var(--g);color:var(--bg);border:none;border-radius:var(--rsm);font-size:.95rem;font-weight:700;text-align:center;cursor:pointer;box-shadow:0 0 14px rgba(0,230,118,.2);}
+.btn-g:active{opacity:.8;}
+.btn-out{display:block;width:100%;padding:12px;background:transparent;color:var(--txt2);border:1px solid var(--bdr2);border-radius:var(--rsm);font-size:.9rem;font-weight:600;text-align:center;cursor:pointer;}
+.btn-out:active{background:var(--c2);}
+.badge-b{background:var(--gp);color:var(--g);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;display:inline-block;}
+.badge-i{background:var(--ap);color:var(--amb);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;display:inline-block;}
+.badge-a{background:var(--cp);color:var(--cyn);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;display:inline-block;}
+.formula-box{background:var(--bg);border:1px solid var(--bdr2);color:var(--g);font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:500;padding:12px 16px;border-radius:var(--r);text-align:center;margin:10px 0;text-shadow:0 0 10px rgba(0,230,118,.4);}
+.feedback{border-radius:var(--rsm);padding:11px 13px;margin-top:11px;font-size:.875rem;line-height:1.6;display:none;}
+.feedback strong{display:block;margin-bottom:3px;}
+.feedback.ok{background:var(--gp);border-left:2px solid var(--g);color:var(--g);}
+.feedback.bad{background:var(--rp);border-left:2px solid var(--red);color:var(--red);}
+.opt{width:100%;text-align:left;padding:13px 14px;background:var(--c2);border:1px solid var(--bdr);border-radius:var(--rsm);font-size:.875rem;color:var(--txt);line-height:1.4;margin-bottom:7px;min-height:46px;cursor:pointer;transition:border-color .1s;}
+.opt:hover{border-color:var(--bdr2);}
+.opt.correct{background:var(--gp);border-color:var(--g);color:var(--g);}
+.opt.wrong{background:var(--rp);border-color:var(--red);color:var(--red);}
+.opt:disabled{cursor:default;}
+.btn-nxt{display:none;width:100%;margin-top:10px;padding:12px;background:var(--c2);border:1px solid var(--bdr2);border-radius:var(--rsm);color:var(--txt2);font-size:.9rem;font-weight:600;}
+.hint-box{background:var(--ap);border-left:2px solid var(--amb);border-radius:0 7px 7px 0;padding:9px 12px;font-size:.85rem;color:var(--amb);margin-bottom:10px;display:none;}
+.calc-row{display:flex;gap:8px;align-items:center;margin-bottom:11px;}
+.calc-inp{flex:1;height:50px;border:1px solid var(--bdr2);border-radius:var(--rsm);background:var(--c2);color:var(--txt);font-size:1.1rem;font-family:'JetBrains Mono',monospace;padding:0 14px;}
+.calc-unit{background:var(--c2);border:1px solid var(--bdr2);border-radius:var(--rsm);padding:0 12px;height:50px;display:flex;align-items:center;font-family:'JetBrains Mono',monospace;font-size:.9rem;color:var(--g);flex-shrink:0;}
+.hint-btn{background:transparent;border:1px solid var(--bdr2);border-radius:var(--rsm);color:var(--txt2);font-size:.8rem;padding:6px 11px;margin-bottom:8px;cursor:pointer;}
+
+/* HOME */
+.hero-band{background:var(--c);border-bottom:1px solid var(--bdr);padding:18px 14px 16px;position:relative;overflow:hidden;}
+.hero-band::before{content:'';position:absolute;top:-40px;right:-40px;width:150px;height:150px;background:radial-gradient(circle,rgba(0,230,118,.06) 0%,transparent 70%);pointer-events:none;}
+.hero-greet{font-size:11px;color:var(--txt3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;}
+.hero-h{font-size:1.6rem;font-weight:700;color:var(--txt);line-height:1.1;letter-spacing:-.03em;margin-bottom:5px;}
+.hero-h span{color:var(--g);text-shadow:0 0 16px rgba(0,230,118,.4);}
+.hero-p{font-size:.82rem;color:var(--txt2);line-height:1.6;margin-bottom:12px;}
+.hero-xp-row{display:flex;align-items:center;gap:9px;}
+.hero-xp-bar{flex:1;height:6px;background:var(--c2);border-radius:3px;overflow:hidden;}
+.hero-xp-fill{height:100%;background:var(--g);border-radius:3px;transition:width .5s;box-shadow:0 0 8px rgba(0,230,118,.4);}
+.hero-xp-txt{font-size:10px;color:var(--txt3);font-family:'JetBrains Mono',monospace;}
+.stat-strip{display:grid;grid-template-columns:repeat(4,1fr);background:var(--c);border-bottom:1px solid var(--bdr);}
+.sbox{padding:9px 4px;text-align:center;border-right:1px solid var(--bdr);}
+.sbox:last-child{border-right:none;}
+.snum{font-size:1.2rem;font-weight:700;color:var(--txt);font-family:'JetBrains Mono',monospace;line-height:1;}
+.slbl{font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.action-card{background:var(--c);border:1px solid var(--bdr);border-radius:var(--r);padding:13px 12px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;cursor:pointer;transition:border-color .15s,box-shadow .15s;text-align:left;}
+.action-card:hover{border-color:var(--bdr2);box-shadow:var(--glw);}
+.action-card:active{opacity:.8;}
+.ac-icon{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.ac-g{background:var(--gp);}.ac-b{background:var(--ap);}.ac-c{background:var(--cp);}.ac-r{background:var(--rp);}.ac-p{background:var(--pp);}
+.ac-title{font-size:.9rem;font-weight:700;color:var(--txt);}
+.ac-sub{font-size:.75rem;color:var(--txt3);}
+.daily-card{background:var(--c);border:1px solid var(--bdr);border-radius:var(--r);padding:14px;}
+.daily-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--g);font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+.daily-lbl::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--g);box-shadow:0 0 6px var(--g);}
+.daily-f{font-family:'JetBrains Mono',monospace;font-size:1.2rem;font-weight:500;color:var(--g);margin-bottom:3px;text-shadow:0 0 10px rgba(0,230,118,.3);}
+.daily-n{font-size:.85rem;font-weight:700;color:var(--txt);margin-bottom:2px;}
+.daily-d{font-size:.8rem;color:var(--txt2);line-height:1.5;}
+.mission-card{background:var(--c);border:1px solid var(--bdr);border-radius:var(--r);padding:14px;margin-bottom:8px;}
+.mission-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bdr);}
+.mission-row:last-child{border-bottom:none;}
+.mission-icon{font-size:1.2rem;width:30px;text-align:center;flex-shrink:0;}
+.mission-txt{flex:1;font-size:.85rem;color:var(--txt);line-height:1.4;}
+.mission-xp{font-size:10px;color:var(--g);font-family:'JetBrains Mono',monospace;font-weight:700;flex-shrink:0;}
+.mission-done{opacity:.45;text-decoration:line-through;}
+.mission-check{font-size:14px;color:var(--g);flex-shrink:0;}
+
+/* SLIDES */
+.slide-hdr{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:var(--c);border-bottom:1px solid var(--bdr);}
+.slide-prog{font-size:12px;font-weight:600;color:var(--txt2);font-family:'JetBrains Mono',monospace;}
+.sdot{width:5px;height:5px;border-radius:50%;background:var(--bdr2);}
+.sdot.on{background:var(--g);width:12px;border-radius:3px;box-shadow:0 0 5px var(--g);}
+.slide-dots{display:flex;gap:3px;flex-wrap:wrap;max-width:180px;}
+.slide-card{background:var(--c);border-radius:var(--r);padding:20px 16px;min-height:360px;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none;touch-action:pan-y;border:1px solid var(--bdr);}
+@keyframes sIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+.slide-card.anim{animation:sIn .22s ease;}
+.slide-top{display:flex;align-items:center;gap:9px;margin-bottom:12px;}
+.slide-em{font-size:1.5rem;}
+.slide-ttl{font-size:1.05rem;font-weight:700;color:var(--txt);}
+.slide-bullets{display:flex;flex-direction:column;gap:7px;margin-bottom:12px;}
+.slide-bullets li{font-size:.875rem;color:var(--txt2);padding-left:14px;position:relative;line-height:1.5;}
+.slide-bullets li::before{content:'›';position:absolute;left:0;color:var(--g);font-weight:700;}
+.slide-tip{margin-top:auto;background:var(--gp);border-left:2px solid var(--g);border-radius:0 7px 7px 0;padding:9px 11px;font-size:.82rem;color:var(--txt2);line-height:1.5;}
+.nav-row{display:flex;gap:8px;margin-top:11px;}
+.nav-arrow{flex:1;padding:12px;border-radius:var(--rsm);border:1px solid var(--bdr2);background:var(--c);color:var(--txt2);font-size:.875rem;font-weight:600;}
+.nav-arrow.p{background:var(--g);color:var(--bg);border-color:var(--g);box-shadow:0 0 12px rgba(0,230,118,.25);}
+
+/* PROJECTS */
+.proj-card{background:var(--c);border:1px solid var(--bdr);border-radius:var(--r);padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .15s;}
+.proj-card:hover{border-color:var(--bdr2);}
+.proj-hdr{display:flex;align-items:center;gap:10px;margin-bottom:7px;}
+.proj-icon{font-size:1.4rem;}
+.proj-title{font-size:.95rem;font-weight:700;color:var(--txt);}
+.proj-desc{font-size:.82rem;color:var(--txt2);line-height:1.5;margin-bottom:9px;}
+.proj-foot{display:flex;align-items:center;justify-content:space-between;}
+.proj-xp{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--g);font-weight:600;}
+.proj-prog{height:3px;background:var(--c2);border-radius:2px;flex:1;margin:0 10px;overflow:hidden;}
+.proj-fill{height:100%;background:var(--g);border-radius:2px;box-shadow:0 0 6px rgba(0,230,118,.4);}
+.step-card{background:var(--c2);border:1px solid var(--bdr);border-radius:var(--rsm);padding:12px;margin-bottom:9px;}
+.step-num{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--txt3);margin-bottom:5px;}
+.step-q{font-size:.875rem;font-weight:500;color:var(--txt);margin-bottom:10px;line-height:1.5;}
+.step-done{opacity:.4;pointer-events:none;}
+.step-check{font-size:.82rem;color:var(--g);background:var(--gp);padding:5px 9px;border-radius:6px;display:inline-block;margin-top:6px;}
+
+/* QUIZ */
+.q-hdr{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:var(--c);border-bottom:1px solid var(--bdr);}
+.q-prog{font-size:12px;font-weight:600;color:var(--txt2);font-family:'JetBrains Mono',monospace;}
+.score-badge{font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;background:var(--gp);color:var(--g);padding:3px 9px;border-radius:20px;border:1px solid var(--bdr2);}
+.q-card{background:var(--c);border:1px solid var(--bdr);border-radius:var(--r);padding:16px;margin-bottom:10px;}
+.q-text{font-size:.95rem;font-weight:500;color:var(--txt);line-height:1.55;margin-bottom:13px;}
+.quiz-timer-bar{height:3px;background:var(--c2);border-radius:2px;margin-bottom:12px;overflow:hidden;}
+.quiz-timer-fill{height:100%;background:var(--g);border-radius:2px;transition:width 1s linear;box-shadow:0 0 6px rgba(0,230,118,.4);}
+.complete{background:var(--c);border:1px solid var(--bdr);border-radius:var(--r);padding:28px 18px;text-align:center;}
+.cmp-icon{font-size:2.5rem;margin-bottom:10px;}
+.cmp-score{font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:700;color:var(--g);margin-bottom:3px;text-shadow:0 0 20px rgba(0,230,118,.4);}
+.cmp-pct{font-size:.95rem;color:var(--g);font-weight:700;margin-bottom:8px;}
+.cmp-msg{font-size:.875rem;color:var(--txt2);line-height:1.5;margin-bottom:18px;}
+
+/* RACE */
+.race-setup{text-align:center;padding:24px 14px;}
+.race-setup h2{font-size:1.3rem;font-weight:700;color:var(--g);margin-bottom:8px;text-shadow:0 0 15px rgba(0,230,118,.4);}
+.race-setup p{font-size:.875rem;color:var(--txt2);margin-bottom:20px;line-height:1.6;}
+.race-diff-row{display:flex;gap:8px;justify-content:center;margin-bottom:18px;}
+.rdiff{padding:8px 16px;border:1px solid var(--bdr2);border-radius:20px;background:transparent;font-size:.875rem;font-weight:600;color:var(--txt2);cursor:pointer;}
+.rdiff.on{background:var(--gp);color:var(--g);border-color:var(--g);}
+.race-active{padding:14px;}
+.race-timer-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.race-timer-big{font-family:'JetBrains Mono',monospace;font-size:2.2rem;font-weight:700;color:var(--g);text-shadow:0 0 20px rgba(0,230,118,.5);}
+.race-score-big{font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;color:var(--txt2);}
+.race-card{height:240px;perspective:1100px;cursor:pointer;user-select:none;-webkit-user-select:none;margin-bottom:12px;touch-action:pan-y;}
+.race-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;-webkit-transform-style:preserve-3d;transition:transform .4s ease;}
+.race-inner.flip{transform:rotateY(180deg);}
+.race-face{position:absolute;inset:0;border-radius:var(--r);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;backface-visibility:hidden;-webkit-backface-visibility:hidden;}
+.race-face.front{background:var(--c);border:1px solid var(--bdr);}
+.race-face.back{background:var(--bg);border:1px solid var(--bdr2);transform:rotateY(180deg);box-shadow:var(--glw);}
+.race-q{font-size:.95rem;font-weight:600;color:var(--txt);line-height:1.5;}
+.race-a{font-family:'JetBrains Mono',monospace;font-size:.875rem;color:var(--g);line-height:1.6;white-space:pre-line;text-shadow:0 0 8px rgba(0,230,118,.3);}
+.race-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:10px;color:var(--txt3);}
+.race-face.back .race-lbl{color:rgba(0,230,118,.4);}
+.race-btns{display:flex;gap:9px;}
+.race-no{flex:1;padding:13px;border-radius:var(--rsm);border:1px solid var(--red);font-size:.875rem;font-weight:700;background:var(--rp);color:var(--red);cursor:pointer;}
+.race-yes{flex:1;padding:13px;border-radius:var(--rsm);border:1px solid var(--g);font-size:.875rem;font-weight:700;background:var(--gp);color:var(--g);cursor:pointer;}
+.race-done{padding:20px;text-align:center;}
+.race-final-score{font-family:'JetBrains Mono',monospace;font-size:2.5rem;font-weight:700;color:var(--g);text-shadow:0 0 20px rgba(0,230,118,.4);margin-bottom:5px;}
+
+/* FLASHCARDS */
+.card-hdr{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:var(--c);border-bottom:1px solid var(--bdr);}
+.shuffle-btn{font-size:11px;font-weight:700;color:var(--g);background:var(--gp);border:1px solid var(--bdr2);border-radius:20px;padding:4px 11px;cursor:pointer;}
+.fc-wrap{height:250px;perspective:1100px;cursor:pointer;user-select:none;-webkit-user-select:none;margin-bottom:12px;touch-action:pan-y;}
+.fc-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;-webkit-transform-style:preserve-3d;transition:transform .45s ease;}
+.fc-inner.flip{transform:rotateY(180deg);}
+.fc-face{position:absolute;inset:0;border-radius:var(--r);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:22px 18px;text-align:center;backface-visibility:hidden;-webkit-backface-visibility:hidden;}
+.fc-face.front{background:var(--c);border:1px solid var(--bdr);}
+.fc-face.back{background:var(--bg);border:1px solid var(--bdr2);transform:rotateY(180deg);box-shadow:var(--glw);}
+.fc-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:10px;color:var(--txt3);}
+.fc-face.back .fc-lbl{color:rgba(0,230,118,.4);}
+.fc-q{font-size:.95rem;font-weight:600;color:var(--txt);line-height:1.5;}
+.fc-a{font-family:'JetBrains Mono',monospace;font-size:.875rem;color:var(--g);line-height:1.7;white-space:pre-line;}
+.card-hint{text-align:center;font-size:.78rem;color:var(--txt3);margin-bottom:10px;}
+.knew-row{display:flex;gap:9px;margin-bottom:12px;}
+.knew-no{flex:1;padding:13px;border-radius:var(--rsm);border:1px solid var(--red);font-size:.875rem;font-weight:700;background:var(--rp);color:var(--red);cursor:pointer;}
+.knew-yes{flex:1;padding:13px;border-radius:var(--rsm);border:1px solid var(--g);font-size:.875rem;font-weight:700;background:var(--gp);color:var(--g);cursor:pointer;}
+.card-prog-bar{width:100%;background:var(--c2);border-radius:3px;height:4px;overflow:hidden;margin-bottom:5px;}
+.card-prog-fill{height:100%;background:var(--g);border-radius:3px;transition:width .3s;}
+.card-prog-txt{font-size:10px;color:var(--txt3);text-align:center;display:flex;gap:14px;justify-content:center;font-family:'JetBrains Mono',monospace;}
+
+/* EXAM MODE */
+.exam-setup{padding:20px 14px;text-align:center;}
+.exam-setup h2{font-size:1.2rem;font-weight:700;color:var(--g);margin-bottom:8px;}
+.exam-setup p{font-size:.85rem;color:var(--txt2);margin-bottom:18px;line-height:1.6;}
+.exam-opt-row{display:flex;gap:8px;margin-bottom:12px;}
+.exam-opt{flex:1;padding:10px;border:1px solid var(--bdr2);border-radius:var(--rsm);background:var(--c2);color:var(--txt2);font-size:.8rem;font-weight:600;cursor:pointer;text-align:center;}
+.exam-opt.on{background:var(--gp);color:var(--g);border-color:var(--g);}
+.exam-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--txt3);margin-bottom:6px;}
+
+/* SKILL TREE */
+.skill-svg{width:100%;border-radius:var(--r);border:1px solid var(--bdr);display:block;}
+.skill-info-card{background:var(--c);border:1px solid var(--bdr2);border-radius:var(--r);padding:14px;margin-top:12px;display:none;}
+.skill-info-card.show{display:block;}
+.skill-info-title{font-size:1rem;font-weight:700;color:var(--g);margin-bottom:5px;}
+.skill-info-txt{font-size:.85rem;color:var(--txt2);line-height:1.6;}
+
+/* WIRE CHALLENGE */
+.wc-canvas{width:100%;border-radius:var(--r);border:1px solid var(--bdr);cursor:crosshair;touch-action:none;display:block;}
+.wc-info{background:var(--c);border:1px solid var(--bdr);border-radius:var(--r);padding:12px 14px;margin-bottom:10px;}
+.wc-title{font-size:.95rem;font-weight:700;color:var(--txt);margin-bottom:3px;}
+.wc-desc{font-size:.82rem;color:var(--txt2);}
+.wc-connections{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.wc-conn{font-size:11px;font-family:'JetBrains Mono',monospace;padding:4px 9px;border-radius:20px;background:var(--rp);color:var(--red);border:1px solid var(--red);}
+.wc-conn.done{background:var(--gp);color:var(--g);border-color:var(--g);}
+.wc-levels{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-bottom:12px;}
+.wc-lvl-btn{padding:10px 6px;background:var(--c2);border:1px solid var(--bdr);border-radius:var(--rsm);text-align:center;cursor:pointer;transition:border-color .15s;}
+.wc-lvl-btn:hover{border-color:var(--bdr2);}
+.wc-lvl-btn.unlocked{border-color:var(--bdr2);}
+.wc-lvl-btn.completed{border-color:var(--g);background:var(--gp);}
+.wc-lvl-btn.locked{opacity:.35;pointer-events:none;}
+.wc-lvl-num{font-size:.7rem;color:var(--txt3);font-weight:600;margin-bottom:3px;}
+.wc-lvl-name{font-size:.8rem;font-weight:600;color:var(--txt);}
+
+/* FAULT HUNTER */
+.fh-canvas{width:100%;border-radius:var(--r);border:1px solid var(--bdr);cursor:pointer;touch-action:none;display:block;}
+.fh-info{background:var(--c);border:1px solid var(--bdr);border-radius:var(--r);padding:12px;margin-bottom:10px;}
+.fh-desc{font-size:.85rem;color:var(--txt2);line-height:1.6;margin-bottom:8px;}
+.fh-q{font-size:.95rem;font-weight:600;color:var(--txt);}
+
+/* REPAIR SHOP */
+.rs-card{background:var(--c);border:1px solid var(--bdr);border-radius:var(--r);padding:14px;margin-bottom:10px;}
+.rs-customer{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.rs-avatar{font-size:2rem;}
+.rs-name{font-size:.9rem;font-weight:700;color:var(--txt);}
+.rs-problem{font-size:.82rem;color:var(--amb);}
+.rs-msg{background:var(--c2);border:1px solid var(--bdr);border-radius:var(--rsm);padding:12px;font-size:.85rem;color:var(--txt2);line-height:1.6;margin-bottom:12px;position:relative;}
+.rs-msg::before{content:'';width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:8px solid var(--c2);position:absolute;top:-8px;left:20px;}
+
+/* COMPONENT COLLECTION */
+.comp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.comp-card{background:var(--c);border:1px solid var(--bdr);border-radius:var(--r);padding:10px 8px;text-align:center;cursor:pointer;transition:border-color .15s;}
+.comp-card.locked{opacity:.25;filter:grayscale(1);pointer-events:none;}
+.comp-card:hover:not(.locked){border-color:var(--bdr2);box-shadow:var(--glw);}
+.comp-sym{height:36px;display:flex;align-items:center;justify-content:center;margin-bottom:5px;font-size:1.3rem;}
+.comp-name{font-size:.75rem;font-weight:700;color:var(--txt);margin-bottom:2px;}
+.comp-cat{font-size:.65rem;color:var(--txt3);}
+.comp-unlock{font-size:.65rem;color:var(--g);font-family:'JetBrains Mono',monospace;margin-top:3px;}
+.comp-detail{background:var(--c);border:1px solid var(--bdr2);border-radius:var(--r);padding:14px;margin-top:10px;display:none;}
+.comp-detail.show{display:block;}
+
+/* PROFILE */
+.profile-hero{background:var(--c);border-bottom:1px solid var(--bdr);padding:20px 14px;text-align:center;position:relative;}
+.profile-hero::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center top,rgba(0,230,118,.04) 0%,transparent 70%);pointer-events:none;}
+.profile-av{font-size:3rem;margin-bottom:8px;}
+.profile-name{font-size:1.3rem;font-weight:700;color:var(--txt);margin-bottom:3px;}
+.profile-title{font-size:.85rem;color:var(--g);font-weight:600;margin-bottom:12px;text-shadow:0 0 10px rgba(0,230,118,.3);}
+.profile-xp-row{display:flex;align-items:center;gap:8px;position:relative;z-index:1;}
+.profile-xp-bar{flex:1;height:7px;background:var(--c2);border-radius:4px;overflow:hidden;}
+.profile-xp-fill{height:100%;background:var(--g);border-radius:4px;transition:width .6s;box-shadow:0 0 8px rgba(0,230,118,.4);}
+.profile-xp-txt{font-size:11px;color:var(--txt3);font-family:'JetBrains Mono',monospace;}
+.ach-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px;}
+.ach-card{background:var(--c);border:1px solid var(--bdr);border-radius:var(--rsm);padding:9px 7px;text-align:center;}
+.ach-card.locked{opacity:.22;filter:grayscale(1);}
+.ach-card.earned{border-color:var(--bdr2);}
+.ach-icon{font-size:1.4rem;margin-bottom:3px;}
+.ach-title{font-size:10px;font-weight:700;color:var(--txt);margin-bottom:2px;}
+.ach-desc{font-size:9px;color:var(--txt3);line-height:1.3;}
+.ach-xp{font-size:9px;color:var(--g);font-family:'JetBrains Mono',monospace;font-weight:600;margin-top:2px;}
+.lb-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--bdr);}
+.lb-row:last-child{border-bottom:none;}
+.lb-row.me{background:var(--gp);}
+.lb-rank{font-size:.95rem;width:26px;flex-shrink:0;text-align:center;}
+.lb-av{font-size:1rem;}
+.lb-name{flex:1;font-size:.875rem;font-weight:600;color:var(--txt);}
+.lb-xp{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--g);font-weight:700;}
+.diff-row{display:flex;gap:7px;margin-bottom:10px;}
+.diff-btn{flex:1;padding:9px;border:1px solid var(--bdr2);border-radius:var(--rsm);background:transparent;font-size:.8rem;font-weight:600;color:var(--txt2);cursor:pointer;}
+.diff-btn.on{background:var(--gp);color:var(--g);border-color:var(--g);}
+
+/* SKILL TREE NODE STYLES */
+.st-node-locked{fill:#1a2a1e;stroke:#2a4030;stroke-width:1.5;}
+.st-node-available{fill:#0d3020;stroke:#00e676;stroke-width:1.5;cursor:pointer;}
+.st-node-done{fill:#003020;stroke:#00e676;stroke-width:2.5;cursor:pointer;}
+.st-node-text{fill:#c8e6c9;font-size:9px;font-family:'Space Grotesk',sans-serif;text-anchor:middle;pointer-events:none;}
+.st-node-locked .st-node-text,.st-node-locked+text{fill:#3d6040;}
+.st-edge{stroke:#1a3a22;stroke-width:1.5;stroke-dasharray:4,3;}
+.st-edge-done{stroke:#00e676;stroke-width:1.5;stroke-dasharray:none;opacity:.5;}
+
+/* XP TOAST */
+#xp-toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--bg);color:var(--g);font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;padding:7px 16px;border-radius:20px;border:1px solid var(--g);opacity:0;transition:opacity .3s,transform .3s;z-index:500;pointer-events:none;box-shadow:var(--glw);}
+#xp-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#lvlup{position:fixed;inset:0;background:rgba(0,0,0,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:900;opacity:0;pointer-events:none;transition:opacity .3s;}
+#lvlup.show{opacity:1;}
+.lvlup-icon{font-size:4rem;margin-bottom:12px;animation:bounce .6s ease infinite alternate;}
+@keyframes bounce{from{transform:scale(1)}to{transform:scale(1.1)}}
+.lvlup-h{font-size:1.8rem;font-weight:700;color:var(--g);text-shadow:0 0 30px rgba(0,230,118,.5);margin-bottom:6px;}
+.lvlup-sub{font-size:1rem;color:var(--txt2);}
+
+/* EXAM TIMER BAR */
+.exam-timer-bar{height:4px;background:var(--c2);border-radius:2px;margin-bottom:12px;overflow:hidden;}
+.exam-timer-fill{height:100%;background:var(--g);border-radius:2px;transition:width 1s linear;}
+.exam-timer-fill.warn{background:var(--amb);}
+.exam-timer-fill.danger{background:var(--red);}
+</style>
+</style>
+</head>
+<body>
+
+<!-- REGISTRATION MODAL -->
+<div id="reg-modal" class="modal-over" style="display:none;">
+<div class="modal-card">
+  <div class="modal-logo">
+    <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
+      <line x1="4" y1="6" x2="14" y2="22" stroke="#00e676" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="24" y1="6" x2="14" y2="22" stroke="#00e676" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="4" cy="6" r="2.3" fill="#00e676"/><circle cx="24" cy="6" r="2.3" fill="#00e676"/><circle cx="14" cy="22" r="2.3" fill="#00e676"/>
+    </svg>
+  </div>
+  <div class="modal-h">Create Account</div>
+  <div class="modal-sub">Choose an avatar and username.<br>All progress saves locally — no email needed.</div>
+  <div class="av-grid" id="av-grid"></div>
+  <input id="reg-inp" class="modal-inp" type="text" placeholder="Your username..." maxlength="20">
+  <button class="modal-go" onclick="createAccount()">Create Account →</button>
+  <div class="modal-note">Saved in your browser. No servers, no tracking.</div>
+  <div class="switch-link" onclick="showSwitchModal()">Switch to existing account</div>
+</div>
+</div>
+
+<!-- SWITCH MODAL -->
+<div id="switch-modal" class="modal-over" style="display:none;">
+<div class="modal-card">
+  <div class="modal-h">Choose Account</div>
+  <div class="modal-sub">All accounts on this device</div>
+  <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:12px;" id="switch-list"></div>
+  <button class="btn-out" style="margin-bottom:7px;" onclick="document.getElementById('switch-modal').style.display='none';document.getElementById('reg-modal').style.display='flex'">+ New Account</button>
+  <button class="btn-out" onclick="document.getElementById('switch-modal').style.display='none'">Cancel</button>
+</div>
+</div>
+
+<!-- CERT MODAL -->
+<div id="cert-modal" class="modal-over" style="display:none;">
+<div class="modal-card">
+  <div class="cert-modal">
+    <div class="cert-badge" id="cert-badge">🏆</div>
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--g);margin-bottom:6px;">CercuitPilot Certifikat</div>
+    <div class="cert-title" id="cert-name"></div>
+    <div class="cert-sub">has passed the</div>
+    <div class="cert-title" id="cert-exam"></div>
+    <div class="cert-score" id="cert-score"></div>
+    <div class="cert-detail" id="cert-detail"></div>
+    <button class="btn-g" onclick="document.getElementById('cert-modal').style.display='none'">Close ✓</button>
+  </div>
+</div>
+</div>
+
+<!-- LEVEL UP -->
+<div id="lvlup">
+  <div class="lvlup-icon" id="lvlup-icon">⭐</div>
+  <div class="lvlup-h">LEVEL UP!</div>
+  <div class="lvlup-sub" id="lvlup-sub"></div>
+</div>
+
+<!-- ACHIEVEMENT UNLOCK -->
+<div id="xp-toast"></div>
+
+<!-- HEADER -->
+<header id="hdr">
+  <div class="logo-box">
+    <svg width="22" height="22" viewBox="0 0 28 28" fill="none">
+      <line x1="4" y1="6" x2="14" y2="22" stroke="#00e676" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="24" y1="6" x2="14" y2="22" stroke="#00e676" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="4" cy="6" r="2.3" fill="#00e676"/><circle cx="24" cy="6" r="2.3" fill="#00e676"/><circle cx="14" cy="22" r="2.3" fill="#00e676"/>
+    </svg>
+  </div>
+  <div class="logo-name" style="flex-shrink:0;">Cercuit<em>Pilot</em></div>
+  <div class="xp-wrap">
+    <div class="lvl-pill" id="hdr-lvl">Lv.1</div>
+    <div class="xp-track"><div class="xp-bar" id="hdr-xp" style="width:0%"></div></div>
+    <div class="xp-num" id="hdr-xp-num">0 XP</div>
+  </div>
+  <div class="hdr-av" id="hdr-av" onclick="goto('profil')">👤</div>
+</header>
+
+<main>
+
+<!-- ══ HOME ══ -->
+<div id="p-hjem" class="page on">
+  <div class="hero-band">
+    <div class="hero-greet" id="hero-greet">WELCOME BACK</div>
+    <h1 class="hero-h">Master <span>electronics</span><br>from zero to hero</h1>
+    <p class="hero-p">Quiz, labs, games, projects and race mode — everything you need for your EFT education.</p>
+    <div class="hero-xp-row">
+      <div class="hero-xp-bar"><div class="hero-xp-fill" id="hero-xp-fill" style="width:0%"></div></div>
+      <div class="hero-xp-txt" id="hero-xp-txt">0 XP</div>
+    </div>
+  </div>
+  <div class="stat-strip">
+    <div class="sbox"><div class="snum" id="st-quiz">0</div><div class="slbl">Quiz</div></div>
+    <div class="sbox"><div class="snum" id="st-pct">—</div><div class="slbl">Score</div></div>
+    <div class="sbox"><div class="snum" id="st-proj">0/5</div><div class="slbl">Projects</div></div>
+    <div class="sbox"><div class="snum" id="st-race">—</div><div class="slbl">Race PB</div></div>
+  </div>
+  <div class="pad">
+    <div class="sec-ttl">Daily Missions</div>
+    <div class="mission-card" id="mission-card"></div>
+    <div class="sec-ttl" style="margin-top:14px;">Jump In</div>
+    <div class="action-grid mb">
+      <button class="action-card" onclick="goto('laer')"><div class="ac-icon ac-g">📖</div><div class="ac-title">Learn</div><div class="ac-sub">20 slides · 5 projects</div></button>
+      <button class="action-card" onclick="goto('oev')"><div class="ac-icon ac-b">❓</div><div class="ac-title">Practice</div><div class="ac-sub">Quiz · Cards · Race</div></button>
+      <button class="action-card" onclick="goto('games')"><div class="ac-icon ac-c">🎮</div><div class="ac-title">Games</div><div class="ac-sub">Wire · FaultHunter · Repair</div></button>
+      <button class="action-card" onclick="goto('lab')"><div class="ac-icon ac-b">🧪</div><div class="ac-title">Lab</div><div class="ac-sub">4 interactive experiments</div></button>
+      <button class="action-card" onclick="goto('profil')"><div class="ac-icon ac-p">🏆</div><div class="ac-title">Profile</div><div class="ac-sub">100+ badges · leaderboard</div></button>
+    </div>
+    <div class="sec-ttl">Today's Formula</div>
+    <div class="daily-card"><div class="daily-lbl">Learn this today</div><div class="daily-f" id="d-f">U = R × I</div><div class="daily-n" id="d-n">Ohm's Law</div><div class="daily-d" id="d-d">Voltage = Resistance × Current</div></div>
+  </div>
+</div>
+
+<!-- ══ LEARN ══ -->
+<div id="p-laer" class="page">
+  <div class="tab-bar">
+    <button class="tb-btn on" onclick="setTab('laer','slides')">📖 Slides</button>
+    <button class="tb-btn" onclick="setTab('laer','projekter')">📋 Projects</button>
+    <button class="tb-btn" onclick="setTab('laer','exam')">📝 Exam</button>
+    <button class="tb-btn" onclick="setTab('laer','skilltree')">🌳 Skill Tree</button>
+  </div>
+  <div id="tc-laer-slides" class="tc on">
+    <div class="slide-hdr"><span class="slide-prog" id="slide-num">1/20</span><div class="slide-dots" id="slide-dots"></div></div>
+    <div class="pad">
+      <div class="slide-card" id="slide-card">
+        <div class="slide-top"><div class="slide-em" id="sl-em"></div><div class="slide-ttl" id="sl-ttl"></div></div>
+        <div class="formula-box" id="sl-f"></div>
+        <ul class="slide-bullets" id="sl-b"></ul>
+        <div class="slide-tip" id="sl-tip"></div>
+      </div>
+      <div class="nav-row"><button class="nav-arrow" onclick="prevSlide()">← Previous</button><button class="nav-arrow p" onclick="nextSlide()">Next →</button></div>
+    </div>
+  </div>
+  <div id="tc-laer-projekter" class="tc">
+    <div class="pad" id="proj-list"></div>
+    <div class="pad" id="proj-detail" style="display:none;">
+      <button class="btn-out mb" onclick="backToProjects()">← All Projects</button>
+      <div id="proj-steps-container"></div>
+    </div>
+  </div>
+  <div id="tc-laer-exam" class="tc">
+    <div id="exam-setup">
+      <div class="exam-setup">
+        <div style="font-size:2rem;margin-bottom:10px;">📝</div>
+        <h2>Exam Mode</h2>
+        <p>Timed exam. No hints. Pass with ≥70%. Earn your certificate.</p>
+        <div class="exam-label">Questions</div>
+        <div class="exam-opt-row mb">
+          <button class="exam-opt on" onclick="setExamOpt('qs',10,this)">10</button>
+          <button class="exam-opt" onclick="setExamOpt('qs',20,this)">20</button>
+          <button class="exam-opt" onclick="setExamOpt('qs',30,this)">30</button>
+        </div>
+        <div class="exam-label">Time limit</div>
+        <div class="exam-opt-row mb">
+          <button class="exam-opt on" onclick="setExamOpt('tm',600,this)">10 min</button>
+          <button class="exam-opt" onclick="setExamOpt('tm',1200,this)">20 min</button>
+          <button class="exam-opt" onclick="setExamOpt('tm',1800,this)">30 min</button>
+        </div>
+        <div class="exam-label">Topic</div>
+        <div class="exam-opt-row mb">
+          <button class="exam-opt on" onclick="setExamOpt('tp','all',this)">All</button>
+          <button class="exam-opt" onclick="setExamOpt('tp','basic',this)">Basic DC</button>
+          <button class="exam-opt" onclick="setExamOpt('tp','comp',this)">Components</button>
+          <button class="exam-opt" onclick="setExamOpt('tp','dig',this)">Digital</button>
+        </div>
+        <button class="btn-g" onclick="startExam()">▶ Start Exam</button>
+      </div>
+    </div>
+    <div id="exam-active" style="display:none;">
+      <div class="q-hdr">
+        <span class="q-prog" id="exam-num">Q 1/10</span>
+        <span class="score-badge" id="exam-sc">0/0</span>
+      </div>
+      <div class="pad">
+        <div class="exam-timer-bar"><div class="exam-timer-fill" id="exam-t-fill" style="width:100%"></div></div>
+        <div style="text-align:right;font-size:11px;color:var(--txt3);font-family:'JetBrains Mono',monospace;margin-bottom:10px;" id="exam-t-txt">10:00</div>
+        <div class="q-card">
+          <div class="q-text" id="exam-q"></div>
+          <div id="exam-opts"></div>
+          <div class="feedback" id="exam-fb"></div>
+          <button class="btn-nxt" id="exam-nxt" onclick="nextExamQ()">Next →</button>
+        </div>
+      </div>
+    </div>
+    <div id="exam-done" style="display:none;padding:14px;">
+      <div class="complete">
+        <div class="cmp-icon" id="exam-icon">🏆</div>
+        <div class="cmp-score" id="exam-score"></div>
+        <div class="cmp-pct" id="exam-pct"></div>
+        <div class="cmp-msg" id="exam-msg"></div>
+        <button class="btn-g mb" id="exam-cert-btn" onclick="showCert()" style="display:none;">📜 View Certificate</button>
+        <button class="btn-out" onclick="resetExam()">Try Again</button>
+      </div>
+    </div>
+  </div>
+  <div id="tc-laer-skilltree" class="tc">
+    <div class="pad">
+      <div class="sec-ttl">Your Skill Tree</div>
+      <svg id="skill-svg" class="skill-svg" viewBox="0 0 500 560"></svg>
+      <div class="skill-info-card" id="skill-info">
+        <div class="skill-info-title" id="si-title"></div>
+        <div class="skill-info-txt" id="si-txt"></div>
+        <button class="btn-g" style="margin-top:10px;" id="si-btn"></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PRACTICE ══ -->
+<div id="p-oev" class="page">
+  <div class="tab-bar">
+    <button class="tb-btn on" onclick="setTab('oev','quiz')">❓ Quiz</button>
+    <button class="tb-btn" onclick="setTab('oev','kort')">🃏 Cards</button>
+    <button class="tb-btn" onclick="setTab('oev','race')">🏎️ Race</button>
+    <button class="tb-btn" onclick="setTab('oev','fejl')">🔍 Fault</button>
+    <button class="tb-btn" onclick="setTab('oev','beregn')">🧮 Calc</button>
+  </div>
+  <div id="tc-oev-quiz" class="tc on">
+    <div class="q-hdr"><span class="q-prog" id="quiz-num">Q 1/50</span><span class="score-badge" id="quiz-sc">0/0</span></div>
+    <div class="pad" id="quiz-body">
+      <div class="q-card">
+        <div class="quiz-timer-bar" id="quiz-t-bar" style="display:none;"><div class="quiz-timer-fill" id="quiz-t-fill" style="width:100%"></div></div>
+        <div class="q-text" id="quiz-q"></div>
+        <div id="quiz-opts"></div>
+        <div class="feedback" id="quiz-fb"></div>
+        <button class="btn-nxt" id="quiz-nxt" onclick="nextQuiz()">Next Question →</button>
+      </div>
+    </div>
+    <div class="pad" id="quiz-done" style="display:none;">
+      <div class="complete">
+        <div class="cmp-icon" id="cmp-i">🎉</div><div class="cmp-score" id="cmp-s"></div><div class="cmp-pct" id="cmp-p"></div><div class="cmp-msg" id="cmp-m"></div>
+        <button class="btn-g" onclick="restartQuiz()">🔄 New Round (shuffle)</button>
+      </div>
+    </div>
+  </div>
+  <div id="tc-oev-kort" class="tc">
+    <div class="card-hdr"><span class="q-prog" id="card-num">1/50</span><button class="shuffle-btn" onclick="shuffleCards()">🔀 Shuffle</button></div>
+    <div class="pad">
+      <div class="fc-wrap" id="fc-wrap" onclick="flipCard()">
+        <div class="fc-inner" id="fc-inner">
+          <div class="fc-face front"><div class="fc-lbl">Question</div><div class="fc-q" id="fc-front"></div></div>
+          <div class="fc-face back"><div class="fc-lbl">Answer</div><div class="fc-a" id="fc-back"></div></div>
+        </div>
+      </div>
+      <div class="card-hint" id="card-hint">👆 Tap card to flip</div>
+      <div class="knew-row" id="knew-row" style="display:none;">
+        <button class="knew-no" onclick="cardResult(false)">✗ Didn't know</button>
+        <button class="knew-yes" onclick="cardResult(true)">✓ Knew it</button>
+      </div>
+      <div class="card-prog-bar"><div class="card-prog-fill" id="card-prog-fill" style="width:0%"></div></div>
+      <div class="card-prog-txt"><span id="cp-k" style="color:var(--g)">✓ 0</span><b id="cp-m" style="color:var(--red)">✗ 0</b><span id="cp-l">— left</span></div>
+    </div>
+  </div>
+  <div id="tc-oev-race" class="tc">
+    <div id="race-setup" class="race-setup">
+      <div style="font-size:2.5rem;margin-bottom:10px;">🏎️</div>
+      <h2>Race Mode</h2>
+      <p>Answer as many flashcards as possible before time runs out. Faster answers = more points. Your score goes on the leaderboard!</p>
+      <div class="race-diff-row">
+        <button class="rdiff on" onclick="setRaceDiff(this,60)">60s</button>
+        <button class="rdiff" onclick="setRaceDiff(this,45)">45s</button>
+        <button class="rdiff" onclick="setRaceDiff(this,30)">30s</button>
+      </div>
+      <button class="btn-g" onclick="startRace()">▶ Start Race</button>
+    </div>
+    <div id="race-active" class="race-active" style="display:none;">
+      <div class="race-timer-row">
+        <div class="race-timer-big" id="race-t">60</div>
+        <div class="race-score-big">⚡ <span id="race-sc">0</span> pts</div>
+      </div>
+      <div class="race-card" id="race-card" onclick="raceFlip()">
+        <div class="race-inner" id="race-inner">
+          <div class="race-face front"><div class="race-lbl">Question</div><div class="race-q" id="race-front"></div></div>
+          <div class="race-face back"><div class="race-lbl">Answer</div><div class="race-a" id="race-back"></div></div>
+        </div>
+      </div>
+      <div class="card-hint" id="race-hint">👆 Tap to reveal answer</div>
+      <div class="race-btns" id="race-btns" style="display:none;">
+        <button class="race-no" onclick="raceAnswer(false)">✗ Didn't know</button>
+        <button class="race-yes" onclick="raceAnswer(true)">✓ Knew it</button>
+      </div>
+    </div>
+    <div id="race-done" class="race-done" style="display:none;">
+      <div style="font-size:2rem;margin-bottom:10px;">🏁</div>
+      <div class="race-final-score" id="race-final"></div>
+      <div style="font-size:.9rem;color:var(--txt2);margin-bottom:5px;" id="race-stats"></div>
+      <div style="font-size:.85rem;color:var(--g);font-weight:600;margin-bottom:20px;" id="race-pb"></div>
+      <button class="btn-g mb" onclick="startRace()">▶ Try Again</button>
+      <button class="btn-out" onclick="goto('profil');setTab('profil','lb')">🏆 Leaderboard</button>
+    </div>
+  </div>
+  <div id="tc-oev-fejl" class="tc">
+    <div class="q-hdr"><span class="q-prog" id="fault-num">1/16</span><span class="score-badge" id="fault-sc">0/0</span></div>
+    <div class="pad">
+      <div style="background:var(--c2);border:1px solid var(--bdr);border-radius:var(--rsm);padding:13px;margin-bottom:11px;">
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--txt3);font-weight:700;margin-bottom:5px;">Scenario</div>
+        <div style="font-size:.95rem;font-weight:700;color:var(--txt);margin-bottom:6px;" id="fault-title"></div>
+        <div style="font-size:.875rem;color:var(--txt2);line-height:1.6;" id="fault-s"></div>
+      </div>
+      <div class="q-text mb" id="fault-q"></div>
+      <div id="fault-opts"></div>
+      <div class="feedback" id="fault-fb"></div>
+      <button class="btn-nxt" id="fault-nxt" onclick="nextFault()">Next Scenario →</button>
+    </div>
+  </div>
+  <div id="tc-oev-beregn" class="tc">
+    <div class="q-hdr"><span class="q-prog" id="calc-num">1/16</span><span class="score-badge" id="calc-sc">0/0</span></div>
+    <div class="pad">
+      <div style="background:var(--c2);border:1px solid var(--bdr);border-radius:var(--rsm);padding:12px;margin-bottom:11px;">
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--txt3);font-weight:700;margin-bottom:4px;">Problem</div>
+        <div style="font-size:.875rem;color:var(--txt2);line-height:1.6;" id="calc-s"></div>
+      </div>
+      <div class="q-text mb" id="calc-q" style="font-weight:700;"></div>
+      <button class="hint-btn" onclick="showHint()">💡 Show hint</button>
+      <div class="hint-box" id="calc-hint"></div>
+      <div class="calc-row">
+        <input type="number" id="calc-inp" class="calc-inp" placeholder="Answer..." inputmode="decimal">
+        <div class="calc-unit" id="calc-unit"></div>
+      </div>
+      <button class="btn-g" onclick="checkCalc()">Check Answer</button>
+      <div class="feedback" id="calc-fb"></div>
+      <button class="btn-nxt" id="calc-nxt" onclick="nextCalc()">Next Problem →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ GAMES ══ -->
+<div id="p-games" class="page">
+  <div class="tab-bar">
+    <button class="tb-btn on" onclick="setTab('games','wire')">🔌 Wire Challenge</button>
+    <button class="tb-btn" onclick="setTab('games','fhunter')">🔍 Fault Hunter</button>
+    <button class="tb-btn" onclick="setTab('games','repair')">🔧 Repair Shop</button>
+  </div>
+  <!-- WIRE CHALLENGE -->
+  <div id="tc-games-wire" class="tc on">
+    <div class="pad" id="wc-level-select">
+      <div class="sec-ttl">Wire Challenge — Connect the Circuit</div>
+      <div class="wc-levels" id="wc-levels-grid"></div>
+    </div>
+    <div class="pad" id="wc-game-area" style="display:none;">
+      <button class="btn-out mb" onclick="backToWireLevels()">← All Levels</button>
+      <div class="wc-info"><div class="wc-title" id="wc-title"></div><div class="wc-desc" id="wc-desc"></div><div class="wc-connections" id="wc-conns"></div></div>
+      <canvas id="wc-canvas" class="wc-canvas" width="560" height="300"></canvas>
+      <div style="font-size:.8rem;color:var(--txt3);text-align:center;margin-top:8px;" id="wc-status">Click a node to start wiring</div>
+      <button class="btn-out" style="margin-top:10px;" onclick="resetWireLevel()">↺ Reset Level</button>
+    </div>
+  </div>
+  <!-- FAULT HUNTER -->
+  <div id="tc-games-fhunter" class="tc">
+    <div class="pad">
+      <div class="sec-ttl">Fault Hunter — Find the defective component</div>
+      <div class="q-hdr" style="padding:0;margin-bottom:10px;background:transparent;border:none;">
+        <span class="q-prog" id="fh-num">1/8</span>
+        <span class="score-badge" id="fh-sc">0/0</span>
+      </div>
+      <div class="fh-info"><div class="fh-desc" id="fh-desc"></div><div class="fh-q" id="fh-q"></div></div>
+      <canvas id="fh-canvas" class="fh-canvas" width="560" height="260"></canvas>
+      <div style="margin-top:10px;" id="fh-opts"></div>
+      <div class="feedback" id="fh-fb"></div>
+      <button class="btn-nxt" id="fh-nxt" onclick="nextFaultHunter()">Next Case →</button>
+    </div>
+  </div>
+  <!-- REPAIR SHOP -->
+  <div id="tc-games-repair" class="tc">
+    <div class="pad">
+      <div class="sec-ttl">Repair Shop — Fix the customer's device</div>
+      <div class="q-hdr" style="padding:0;margin-bottom:10px;background:transparent;border:none;">
+        <span class="q-prog" id="rs-num">1/6</span>
+        <span class="score-badge" id="rs-sc">0/0</span>
+      </div>
+      <div class="rs-card">
+        <div class="rs-customer"><div class="rs-avatar" id="rs-av">👨</div><div><div class="rs-name" id="rs-name">—</div><div class="rs-problem" id="rs-prob">—</div></div></div>
+        <div class="rs-msg" id="rs-msg"></div>
+        <div class="q-text mb" id="rs-q"></div>
+        <div id="rs-opts"></div>
+        <div class="feedback" id="rs-fb"></div>
+        <button class="btn-nxt" id="rs-nxt" onclick="nextRepair()">Next Customer →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LAB ══ -->
+<div id="p-lab" class="page">
+  <div class="tab-bar">
+    <button class="tb-btn on" onclick="setTab('lab','ohm')">⚡ Ohm's Law</button>
+    <button class="tb-btn" onclick="setTab('lab','led')">💡 LED Lab</button>
+    <button class="tb-btn" onclick="setTab('lab','rc')">🔋 RC Lab</button>
+    <button class="tb-btn" onclick="setTab('lab','logik')">🔲 Logic Gate</button>
+  </div>
+  <div id="tc-lab-ohm" class="tc on">
+    <div class="pad">
+      <div style="background:var(--c);border:1px solid var(--bdr);border-radius:var(--r);padding:15px;">
+        <div style="font-size:1rem;font-weight:700;color:var(--txt);margin-bottom:12px;">⚡ Ohm's Law — Interactive</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;">
+          <span style="font-size:12px;color:var(--txt2);">Solve for:</span>
+          <button class="exam-opt on" onclick="setSolve('u',this)">U</button>
+          <button class="exam-opt" onclick="setSolve('r',this)">R</button>
+          <button class="exam-opt" onclick="setSolve('i',this)">I</button>
+        </div>
+        <div style="background:var(--bg);border:1px solid var(--bdr2);border-radius:var(--r);padding:14px;display:flex;margin-bottom:14px;">
+          <div style="flex:1;text-align:center;"><div style="font-family:'JetBrains Mono',monospace;font-size:1.5rem;font-weight:500;color:var(--g);text-shadow:0 0 10px rgba(0,230,118,.3);" id="ohm-u">12.0</div><div style="font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;margin-top:3px;">U (Volt)</div></div>
+          <div style="flex:1;text-align:center;border-left:1px solid var(--bdr);"><div style="font-family:'JetBrains Mono',monospace;font-size:1.5rem;font-weight:500;color:var(--g);text-shadow:0 0 10px rgba(0,230,118,.3);" id="ohm-r">100</div><div style="font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;margin-top:3px;">R (Ohm)</div></div>
+          <div style="flex:1;text-align:center;border-left:1px solid var(--bdr);"><div style="font-family:'JetBrains Mono',monospace;font-size:1.5rem;font-weight:500;color:var(--g);text-shadow:0 0 10px rgba(0,230,118,.3);" id="ohm-i">0.120</div><div style="font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;margin-top:3px;">I (Ampere)</div></div>
+        </div>
+        <div class="mb"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--txt2);margin-bottom:4px;"><span id="ohm-la">Voltage U</span><span style="color:var(--g);font-family:'JetBrains Mono',monospace;" id="ohm-la-v">12 V</span></div><input type="range" id="ohm-sa" min="1" max="50" step=".5" value="12" oninput="ohm_update()" style="width:100%;accent-color:#00e676;"></div>
+        <div class="mb"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--txt2);margin-bottom:4px;"><span id="ohm-lb">Resistance R</span><span style="color:var(--g);font-family:'JetBrains Mono',monospace;" id="ohm-lb-v">100 Ω</span></div><input type="range" id="ohm-sb" min="1" max="1000" step="1" value="100" oninput="ohm_update()" style="width:100%;accent-color:#00e676;"></div>
+        <div style="font-size:.78rem;color:var(--txt2);margin-bottom:12px;font-family:'JetBrains Mono',monospace;" id="ohm-formula-txt">I = U / R = 12V / 100Ω = 0.120A</div>
+        <button class="btn-g" id="ohm-done" onclick="completeLab('ohm','⚡ Ohm\\'s Law Lab','ohm-done')">✓ Complete Experiment (+30 XP)</button>
+      </div>
+    </div>
+  </div>
+  <div id="tc-lab-led" class="tc">
+    <div class="pad">
+      <div style="background:var(--c);border:1px solid var(--bdr);border-radius:var(--r);padding:15px;">
+        <div style="font-size:1rem;font-weight:700;color:var(--txt);margin-bottom:12px;">💡 LED Current Limiter</div>
+        <div class="mb"><label style="font-size:12px;color:var(--txt2);display:block;margin-bottom:4px;">LED type</label><select id="led-type" style="width:100%;padding:9px;border:1px solid var(--bdr2);border-radius:var(--rsm);background:var(--c2);color:var(--txt);font-size:.9rem;" onchange="led_update()"><option value="2.0">Red (Vf=2.0V)</option><option value="2.1">Yellow (Vf=2.1V)</option><option value="2.2">Green (Vf=2.2V)</option><option value="3.2">Blue/White (Vf=3.2V)</option></select></div>
+        <div class="mb"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--txt2);margin-bottom:4px;"><span>Supply Vs</span><span style="color:var(--g);font-family:'JetBrains Mono',monospace;" id="vs-lbl">5.0V</span></div><input type="range" id="vs-sl" min="3" max="15" step=".5" value="5" oninput="led_update()" style="width:100%;accent-color:#00e676;"></div>
+        <div class="mb"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--txt2);margin-bottom:4px;"><span>Series R</span><span style="color:var(--g);font-family:'JetBrains Mono',monospace;" id="rs-lbl">150Ω</span></div><input type="range" id="rs-sl" min="10" max="2000" step="10" value="150" oninput="led_update()" style="width:100%;accent-color:#00e676;"></div>
+        <div style="text-align:center;font-size:3rem;padding:14px;transition:filter .3s;" id="led-vis">💡</div>
+        <div style="background:var(--bg);border:1px solid var(--bdr2);border-radius:var(--r);padding:12px;display:flex;margin-bottom:12px;">
+          <div style="flex:1;text-align:center;"><div style="font-family:'JetBrains Mono',monospace;font-size:1.3rem;font-weight:500;color:var(--g);" id="led-if">—</div><div style="font-size:9px;color:var(--txt3);margin-top:2px;">If (mA)</div></div>
+          <div style="flex:1;text-align:center;border-left:1px solid var(--bdr);"><div style="font-family:'JetBrains Mono',monospace;font-size:1.3rem;font-weight:500;color:var(--g);" id="led-pr">—</div><div style="font-size:9px;color:var(--txt3);margin-top:2px;">P_R (mW)</div></div>
+          <div style="flex:1;text-align:center;border-left:1px solid var(--bdr);"><div style="font-family:'JetBrains Mono',monospace;font-size:1.3rem;font-weight:500;color:var(--g);" id="led-st">—</div><div style="font-size:9px;color:var(--txt3);margin-top:2px;">Status</div></div>
+        </div>
+        <button class="btn-g" id="led-done" onclick="completeLab('led','💡 LED Lab','led-done')">✓ Complete Experiment (+30 XP)</button>
+      </div>
+    </div>
+  </div>
+  <div id="tc-lab-rc" class="tc">
+    <div class="pad">
+      <div style="background:var(--c);border:1px solid var(--bdr);border-radius:var(--r);padding:15px;">
+        <div style="font-size:1rem;font-weight:700;color:var(--txt);margin-bottom:12px;">🔋 RC Charge Curve</div>
+        <div class="mb"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--txt2);margin-bottom:4px;"><span>Resistance R</span><span style="color:var(--g);font-family:'JetBrains Mono',monospace;" id="rc-r-lbl">10kΩ</span></div><input type="range" id="rc-r-sl" min="1" max="100" step="1" value="10" oninput="rc_update()" style="width:100%;accent-color:#00e676;"></div>
+        <div class="mb"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--txt2);margin-bottom:4px;"><span>Capacitance C</span><span style="color:var(--g);font-family:'JetBrains Mono',monospace;" id="rc-c-lbl">100µF</span></div><input type="range" id="rc-c-sl" min="1" max="1000" step="1" value="100" oninput="rc_update()" style="width:100%;accent-color:#00e676;"></div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.95rem;font-weight:500;color:var(--g);margin-bottom:8px;text-align:center;" id="rc-tau">τ = 1.00s · 5τ = 5.00s</div>
+        <div style="font-size:11px;color:var(--txt3);text-align:center;margin-bottom:7px;">Animation: 1 second = 1τ (accelerated)</div>
+        <div style="background:var(--c2);border-radius:8px;height:10px;overflow:hidden;margin-bottom:6px;"><div style="height:100%;background:var(--g);border-radius:8px;transition:width .1s linear;box-shadow:0 0 8px rgba(0,230,118,.4);" id="rc-fill" class="rc-gauge-fill"></div></div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.95rem;color:var(--g);text-align:center;margin-bottom:12px;" id="rc-pct">0%</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <button class="btn-g" style="flex:1;padding:10px;" onclick="startRC()">▶ Start</button>
+          <button class="btn-out" style="flex:1;padding:10px;" onclick="stopRC()">■ Stop</button>
+        </div>
+        <button class="btn-g" id="rc-done" onclick="completeLab('rc','🔋 RC Lab','rc-done')">✓ Complete Experiment (+30 XP)</button>
+      </div>
+    </div>
+  </div>
+  <div id="tc-lab-logik" class="tc">
+    <div class="pad">
+      <div style="background:var(--c);border:1px solid var(--bdr);border-radius:var(--r);padding:15px;">
+        <div style="font-size:1rem;font-weight:700;color:var(--txt);margin-bottom:12px;">🔲 Logic Gate Simulator</div>
+        <div class="mb"><select id="gate-sel" style="width:100%;padding:10px;border:1px solid var(--bdr2);border-radius:var(--rsm);background:var(--c2);color:var(--txt);font-size:.95rem;font-weight:600;accent-color:#00e676;" onchange="gate_update()"><option>AND</option><option>OR</option><option>NOT</option><option>NAND</option><option>NOR</option><option>XOR</option></select></div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <button id="inp-a" onclick="toggleGate('a')" style="flex:1;padding:14px;border-radius:var(--rsm);border:1px solid var(--bdr2);background:var(--c2);font-size:1rem;font-weight:700;color:var(--txt);cursor:pointer;transition:all .15s;">A = 0</button>
+          <button id="inp-b" onclick="toggleGate('b')" style="flex:1;padding:14px;border-radius:var(--rsm);border:1px solid var(--bdr2);background:var(--c2);font-size:1rem;font-weight:700;color:var(--txt);cursor:pointer;transition:all .15s;">B = 0</button>
+        </div>
+        <div style="text-align:center;padding:16px;background:var(--c2);border-radius:var(--rsm);margin-bottom:12px;border:1px solid var(--bdr);"><div style="font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:700;margin-bottom:3px;" id="gate-out-val">0</div><div style="font-size:11px;color:var(--txt3);">Output Y</div></div>
+        <table id="truth-tbl" style="width:100%;font-size:12px;border-collapse:collapse;font-family:'JetBrains Mono',monospace;margin-bottom:12px;"></table>
+        <button class="btn-g" id="logic-done" onclick="completeLab('logik','🔲 Logic Gate Lab','logic-done')">✓ Complete Experiment (+30 XP)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PROFILE ══ -->
+<div id="p-profil" class="page">
+  <div class="tab-bar">
+    <button class="tb-btn on" onclick="setTab('profil','profil')">👤 Profile</button>
+    <button class="tb-btn" onclick="setTab('profil','badges')">🏅 Badges</button>
+    <button class="tb-btn" onclick="setTab('profil','comp')">📦 Collection</button>
+    <button class="tb-btn" onclick="setTab('profil','lb')">🏆 Leaderboard</button>
+    <button class="tb-btn" onclick="setTab('profil','indst')">⚙️ Settings</button>
+  </div>
+  <div id="tc-profil-profil" class="tc on">
+    <div class="profile-hero">
+      <div class="profile-av" id="prof-av">👤</div>
+      <div class="profile-name" id="prof-name">—</div>
+      <div class="profile-title" id="prof-title">Beginner · Level 1</div>
+      <div class="profile-xp-row"><div class="profile-xp-bar"><div class="profile-xp-fill" id="prof-xp-fill" style="width:0%"></div></div><div class="profile-xp-txt" id="prof-xp-txt">0/200 XP</div></div>
+    </div>
+    <div class="pad">
+      <div class="sec-ttl">Statistics</div>
+      <div class="g2 mb">
+        <div class="card" style="padding:13px;"><div style="font-size:1.3rem;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--txt);" id="p-qn">0</div><div style="font-size:10px;color:var(--txt3);margin-top:3px;">Quiz Answered</div></div>
+        <div class="card" style="padding:13px;"><div style="font-size:1.3rem;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--g);" id="p-qp">—</div><div style="font-size:10px;color:var(--txt3);margin-top:3px;">Quiz %</div></div>
+        <div class="card" style="padding:13px;"><div style="font-size:1.3rem;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--txt);" id="p-pn">0/5</div><div style="font-size:10px;color:var(--txt3);margin-top:3px;">Projects Done</div></div>
+        <div class="card" style="padding:13px;"><div style="font-size:1.3rem;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--amb);" id="p-rh">—</div><div style="font-size:10px;color:var(--txt3);margin-top:3px;">Race High Score</div></div>
+      </div>
+      <div class="sec-ttl">Recent Badges</div>
+      <div class="ach-grid" id="prof-badges-preview"></div>
+      <button class="btn-out" onclick="setTab('profil','badges')">View all badges →</button>
+    </div>
+  </div>
+  <div id="tc-profil-badges" class="tc"><div class="pad"><div class="ach-grid" id="all-badges"></div></div></div>
+  <div id="tc-profil-comp" class="tc">
+    <div class="pad">
+      <div class="sec-ttl">Component Collection <span id="comp-count" style="color:var(--g);font-family:'JetBrains Mono',monospace;"></span></div>
+      <div class="comp-grid" id="comp-grid"></div>
+      <div class="comp-detail" id="comp-detail">
+        <div style="font-size:1.5rem;text-align:center;margin-bottom:8px;" id="cd-sym"></div>
+        <div style="font-size:1rem;font-weight:700;color:var(--txt);margin-bottom:4px;" id="cd-name"></div>
+        <div style="font-size:.78rem;color:var(--g);font-family:'JetBrains Mono',monospace;margin-bottom:8px;" id="cd-unit"></div>
+        <div style="font-size:.85rem;color:var(--txt2);line-height:1.6;" id="cd-desc"></div>
+      </div>
+    </div>
+  </div>
+  <div id="tc-profil-lb" class="tc">
+    <div class="pad">
+      <div class="sec-ttl" style="margin-bottom:12px;">🏆 XP Leaderboard</div>
+      <div class="card" id="lb-xp"></div>
+      <div class="sec-ttl" style="margin-top:16px;margin-bottom:12px;">🏎️ Race High Scores</div>
+      <div class="card" id="lb-race"></div>
+      <div style="font-size:11px;color:var(--txt3);text-align:center;margin-top:12px;">All users on this device compete for the top spot.</div>
+    </div>
+  </div>
+  <div id="tc-profil-indst" class="tc">
+    <div class="pad">
+      <div class="sec-ttl">Difficulty</div>
+      <div class="diff-row mb">
+        <button class="diff-btn" onclick="setDiff('let',this)">Easy</button>
+        <button class="diff-btn on" onclick="setDiff('normal',this)">Normal</button>
+        <button class="diff-btn" onclick="setDiff('svaer',this)">Hard ⏱</button>
+      </div>
+      <div style="font-size:.82rem;color:var(--txt2);line-height:1.6;margin-bottom:20px;" id="diff-desc">Normal: hints on request, no timer, standard feedback.</div>
+      <div class="sec-ttl">Accounts</div>
+      <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:12px;" id="indst-accounts"></div>
+      <button class="btn-out mb" onclick="document.getElementById('reg-modal').style.display='flex'">+ New Account</button>
+      <button class="btn-out" style="color:var(--red);border-color:var(--red);" onclick="resetAccount()">⚠️ Reset My Account</button>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+  <button class="nbtn on" id="nav-hjem" onclick="goto('hjem')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 3L21 12"/><path d="M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg>Home
+  </button>
+  <button class="nbtn" id="nav-laer" onclick="goto('laer')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>Learn
+  </button>
+  <button class="nbtn" id="nav-oev" onclick="goto('oev')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17" stroke-width="2.5"/></svg>Practice
+  </button>
+  <button class="nbtn" id="nav-games" onclick="goto('games')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12h.01M8 12h.01M16 12h.01M12 8h.01M12 16h.01"/></svg>Games
+  </button>
+  <button class="nbtn" id="nav-profil" onclick="goto('profil')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile
+  </button>
+</nav>
+<script>
+// ═══════════════════════════════════════
+// LEVELS & CONSTANTS
+// ═══════════════════════════════════════
+const LEVELS=[
+  {l:1,xp:0,title:'Beginner',icon:'🔩'},
+  {l:2,xp:200,title:'Apprentice',icon:'⚡'},
+  {l:3,xp:500,title:'Technician',icon:'🔌'},
+  {l:4,xp:1000,title:'Engineer',icon:'🔧'},
+  {l:5,xp:2000,title:'Senior EFT',icon:'💡'},
+  {l:6,xp:3500,title:'Master',icon:'🏆'},
+  {l:7,xp:5500,title:'Expert',icon:'⚗️'},
+  {l:8,xp:8000,title:'Instructor',icon:'🎓'},
+  {l:9,xp:12000,title:'Professor',icon:'🏛️'},
+  {l:10,xp:18000,title:'The Legend',icon:'🌟'},
+];
+const AVATARS=['🦊','🐺','🦁','🐯','🐻','🦅','🐉','⚡','🔧','💡','🛸','🔬','🎯','🚀','🏆','🌊','🎸','🤖','👾','🦾'];
+
+function getLevelInfo(xp){
+  let info=LEVELS[0];
+  for(const l of LEVELS){if(xp>=l.xp)info=l;}
+  const next=LEVELS.find(l=>l.xp>xp);
+  const pct=next?Math.round((xp-info.xp)/(next.xp-info.xp)*100):100;
+  return{...info,next,pct,nextXP:next?next.xp:info.xp};
+}
+
+// ═══════════════════════════════════════
+// 100+ ACHIEVEMENTS
+// ═══════════════════════════════════════
+const ACHS=[
+  // Quiz
+  {id:'q1',icon:'⚡',title:'First Answer',desc:'Answer your first quiz question',xp:25},
+  {id:'q10',icon:'✅',title:'10 Correct',desc:'Get 10 quiz answers right',xp:50},
+  {id:'q25',icon:'🎯',title:'25 Correct',desc:'25 correct quiz answers',xp:75},
+  {id:'q50',icon:'🏅',title:'50 Correct',desc:'50 correct quiz answers',xp:100},
+  {id:'q100',icon:'💎',title:'Quiz Century',desc:'100 correct quiz answers',xp:200},
+  {id:'q200',icon:'👑',title:'Quiz King',desc:'200 correct quiz answers',xp:400},
+  {id:'qp10',icon:'💯',title:'Perfect 10',desc:'10 correct answers in a row',xp:150},
+  {id:'qp20',icon:'🔥',title:'On Fire',desc:'20 correct answers in a row',xp:300},
+  {id:'qspd',icon:'⚡',title:'Speed Demon',desc:'Answer a quiz in under 3 seconds',xp:75},
+  // Flashcards
+  {id:'c1',icon:'🃏',title:'First Card',desc:'Flip your first flashcard',xp:20},
+  {id:'c50',icon:'🃏',title:'Card Shark',desc:'Know 50 flashcards',xp:100},
+  {id:'c100',icon:'🃏',title:'Card Master',desc:'Know 100 flashcards',xp:200},
+  {id:'c_all',icon:'🃏',title:'Card Legend',desc:'Know all 50 cards in one session',xp:250},
+  // Race
+  {id:'r1',icon:'🏎️',title:'First Race',desc:'Complete your first race',xp:30},
+  {id:'r100',icon:'🏎️',title:'Race Rookie',desc:'Score 100+ in race mode',xp:50},
+  {id:'r300',icon:'🏁',title:'Race Driver',desc:'Score 300+ in race mode',xp:100},
+  {id:'r500',icon:'🏆',title:'Race Master',desc:'Score 500+ in race mode',xp:200},
+  {id:'r1000',icon:'🌟',title:'Race Legend',desc:'Score 1000+ in race mode',xp:400},
+  {id:'rpb',icon:'📈',title:'Personal Best',desc:'Beat your race high score',xp:50},
+  // Fault finding
+  {id:'f1',icon:'🔍',title:'First Fault',desc:'Solve your first fault scenario',xp:30},
+  {id:'f5',icon:'🔍',title:'Fault Finder',desc:'5 fault scenarios correct',xp:75},
+  {id:'f10',icon:'🔍',title:'Fault Expert',desc:'10 fault scenarios correct',xp:150},
+  {id:'f_all',icon:'🔍',title:'Fault Master',desc:'Solve all fault scenarios',xp:200},
+  // Calculations
+  {id:'ca1',icon:'🧮',title:'First Calc',desc:'Solve your first calculation',xp:30},
+  {id:'ca5',icon:'🧮',title:'Calculator',desc:'5 calculations correct',xp:75},
+  {id:'ca10',icon:'🧮',title:'Math Whiz',desc:'10 calculations correct',xp:150},
+  {id:'ca_all',icon:'🧮',title:'Ohm\'s Hero',desc:'Solve all calculations',xp:300},
+  // Slides
+  {id:'sl5',icon:'📖',title:'Reader',desc:'View 5 slides',xp:25},
+  {id:'sl_all',icon:'📚',title:'Scholar',desc:'View all 20 slides',xp:100},
+  // Projects
+  {id:'pr1',icon:'📋',title:'Project Manager',desc:'Complete your first project',xp:100},
+  {id:'pr3',icon:'📋',title:'Builder',desc:'Complete 3 projects',xp:200},
+  {id:'pr_all',icon:'🏗️',title:'Engineer',desc:'Complete all 5 projects',xp:500},
+  // Lab
+  {id:'lab1',icon:'🧪',title:'Lab Rat',desc:'Complete your first lab',xp:50},
+  {id:'lab_all',icon:'🔬',title:'Lab Master',desc:'Complete all 4 labs',xp:200},
+  // Exam
+  {id:'ex1',icon:'📝',title:'First Exam',desc:'Take your first exam',xp:50},
+  {id:'ex_pass',icon:'✅',title:'Exam Passed',desc:'Pass an exam (≥70%)',xp:150},
+  {id:'ex_perf',icon:'💯',title:'Perfect Exam',desc:'Score 100% on an exam',xp:400},
+  // Wire Challenge
+  {id:'wc1',icon:'🔌',title:'Wire Puller',desc:'Complete your first wire challenge',xp:50},
+  {id:'wc3',icon:'🔌',title:'Circuit Maker',desc:'Complete 3 wire challenges',xp:100},
+  {id:'wc_all',icon:'🔌',title:'Wire Master',desc:'Complete all wire challenges',xp:250},
+  // Fault Hunter
+  {id:'fh1',icon:'🔍',title:'Bug Hunter',desc:'Find your first circuit fault',xp:50},
+  {id:'fh_all',icon:'🔍',title:'Fault Hunter',desc:'Solve all Fault Hunter cases',xp:250},
+  // Repair Shop
+  {id:'rs1',icon:'🔧',title:'Repairman',desc:'Fix your first customer\'s device',xp:50},
+  {id:'rs_all',icon:'🔧',title:'Master Technician',desc:'Fix all customers\' devices',xp:300},
+  // Component collection
+  {id:'comp5',icon:'📦',title:'Collector',desc:'Unlock 5 components',xp:50},
+  {id:'comp15',icon:'📦',title:'Component Fan',desc:'Unlock 15 components',xp:100},
+  {id:'comp_all',icon:'📦',title:'Complete Set',desc:'Unlock all components',xp:300},
+  // Skill tree
+  {id:'st5',icon:'🌳',title:'Branching Out',desc:'Unlock 5 skill tree nodes',xp:75},
+  {id:'st_all',icon:'🌳',title:'Full Tree',desc:'Unlock all skill tree nodes',xp:400},
+  // Streaks
+  {id:'s3',icon:'🔥',title:'3-Day Streak',desc:'Learn 3 days in a row',xp:50},
+  {id:'s7',icon:'🔥',title:'Week Streak',desc:'Learn 7 days in a row',xp:150},
+  {id:'s14',icon:'🔥',title:'Two Weeks',desc:'Learn 14 days in a row',xp:300},
+  {id:'s30',icon:'🔥',title:'Month Master',desc:'Learn 30 days in a row',xp:600},
+  // Levels
+  {id:'lv2',icon:'⭐',title:'Level 2',desc:'Reach Level 2: Apprentice',xp:0},
+  {id:'lv3',icon:'⭐',title:'Level 3',desc:'Reach Level 3: Technician',xp:0},
+  {id:'lv5',icon:'⭐',title:'Level 5',desc:'Reach Level 5: Senior EFT',xp:0},
+  {id:'lv7',icon:'⭐',title:'Level 7',desc:'Reach Level 7: Expert',xp:0},
+  {id:'lv10',icon:'🌟',title:'The Legend',desc:'Reach the highest level',xp:0},
+  // XP milestones
+  {id:'xp100',icon:'💰',title:'100 XP',desc:'Earn 100 XP total',xp:0},
+  {id:'xp500',icon:'💰',title:'500 XP',desc:'Earn 500 XP total',xp:0},
+  {id:'xp1000',icon:'💰',title:'1,000 XP',desc:'Earn 1,000 XP total',xp:0},
+  {id:'xp5000',icon:'💰',title:'5,000 XP',desc:'Earn 5,000 XP total',xp:0},
+  // Special
+  {id:'early',icon:'🌅',title:'Early Bird',desc:'Study before 7am',xp:50},
+  {id:'night',icon:'🦉',title:'Night Owl',desc:'Study after midnight',xp:50},
+  {id:'wknd',icon:'📅',title:'Weekend Warrior',desc:'Study on both Saturday and Sunday',xp:75},
+  {id:'daily7',icon:'📆',title:'Mission Week',desc:'Complete daily missions 7 days',xp:150},
+  {id:'noob',icon:'🆕',title:'Rookie',desc:'Create your account',xp:50},
+  {id:'ohm_law',icon:'⚡',title:'Ohm\'s Disciple',desc:'Get 10 Ohm\'s law calculations right',xp:100},
+  {id:'safe',icon:'🛡️',title:'Safety First',desc:'Complete the safety module',xp:75},
+  {id:'speed5',icon:'⚡',title:'Lightning',desc:'Answer 5 race cards in under 3s each',xp:100},
+];
+
+// ═══════════════════════════════════════
+// WIRE CHALLENGE DATA (5 levels)
+// ═══════════════════════════════════════
+const WC_LEVELS=[
+  {
+    id:1,title:'Series LED Circuit',xp:30,
+    desc:'Wire battery → resistor → LED in series. Complete the loop.',
+    components:[
+      {type:'bat',x:60,y:150,w:40,h:60,label:'9V'},
+      {type:'res',x:200,y:90,w:70,h:30,label:'220Ω'},
+      {type:'led',x:360,y:90,w:50,h:30,label:'LED'},
+    ],
+    nodes:[
+      {id:'BP',x:80,y:110,label:'+'},
+      {id:'BN',x:80,y:190,label:'−'},
+      {id:'R1',x:195,y:105,label:''},
+      {id:'R2',x:275,y:105,label:''},
+      {id:'LA',x:355,y:105,label:'A'},
+      {id:'LK',x:415,y:105,label:'K'},
+      {id:'G1',x:415,y:190,label:''},
+      {id:'G2',x:80,y:190,label:''},
+    ],
+    required:[['BP','R1'],['R2','LA'],['LK','G1'],['G1','G2']],
+    hint:'Current flows from + through R then LED then back to −',
+  },
+  {
+    id:2,title:'Parallel LEDs',xp:40,
+    desc:'Wire two LEDs in parallel — both connected to the same power rails.',
+    components:[
+      {type:'bat',x:40,y:140,w:40,h:60,label:'5V'},
+      {type:'res',x:150,y:80,w:60,h:28,label:'R1'},
+      {type:'res',x:150,y:170,w:60,h:28,label:'R2'},
+      {type:'led',x:290,y:80,w:50,h:28,label:'LED1'},
+      {type:'led',x:290,y:170,w:50,h:28,label:'LED2'},
+    ],
+    nodes:[
+      {id:'BP',x:60,y:110,label:'+'},{id:'BN',x:60,y:180,label:'−'},
+      {id:'VCC',x:130,y:80,label:''},{id:'VCC2',x:130,y:168,label:''},
+      {id:'R1a',x:148,y:94,label:''},{id:'R1b',x:215,y:94,label:''},
+      {id:'R2a',x:148,y:184,label:''},{id:'R2b',x:215,y:184,label:''},
+      {id:'L1A',x:285,y:94,label:'A'},{id:'L1K',x:345,y:94,label:'K'},
+      {id:'L2A',x:285,y:184,label:'A'},{id:'L2K',x:345,y:184,label:'K'},
+      {id:'GND1',x:345,y:240,label:''},{id:'GND2',x:60,y:240,label:''},
+    ],
+    required:[['BP','VCC'],['BP','VCC2'],['VCC','R1a'],['R1b','L1A'],['VCC2','R2a'],['R2b','L2A'],['L1K','GND1'],['L2K','GND1'],['GND1','GND2'],['GND2','BN']],
+    hint:'Both resistors connect to the + rail. Both LED cathodes connect to the − rail.',
+  },
+  {
+    id:3,title:'Voltage Divider',xp:50,
+    desc:'Build a voltage divider with R1 and R2 to get Vout at the midpoint.',
+    components:[
+      {type:'bat',x:40,y:140,w:40,h:60,label:'10V'},
+      {type:'res',x:170,y:70,w:60,h:28,label:'R1\n10kΩ'},
+      {type:'res',x:170,y:170,w:60,h:28,label:'R2\n10kΩ'},
+    ],
+    nodes:[
+      {id:'BP',x:60,y:110,label:'+'},{id:'BN',x:60,y:180,label:'−'},
+      {id:'T',x:140,y:110,label:'VCC'},
+      {id:'R1a',x:168,y:84,label:''},{id:'R1b',x:235,y:84,label:''},
+      {id:'MID',x:235,y:140,label:'Vout'},
+      {id:'R2a',x:168,y:184,label:''},{id:'R2b',x:235,y:184,label:''},
+      {id:'B',x:140,y:220,label:'GND'},
+      {id:'BN2',x:60,y:220,label:''},
+    ],
+    required:[['BP','T'],['T','R1a'],['R1b','MID'],['MID','R2a'],['R2b','B'],['B','BN2'],['BN2','BN']],
+    hint:'R1 on top, R2 on bottom. Vout is between R1 and R2.',
+  },
+  {
+    id:4,title:'NPN Transistor Switch',xp:60,
+    desc:'Wire an NPN transistor to switch a LED using a base resistor from GPIO.',
+    components:[
+      {type:'bat',x:40,y:120,w:40,h:60,label:'5V'},
+      {type:'res',x:200,y:60,w:60,h:28,label:'Rb\n1kΩ'},
+      {type:'res',x:340,y:60,w:60,h:28,label:'Rc\n220Ω'},
+      {type:'npn',x:310,y:150,w:60,h:80,label:'NPN'},
+      {type:'led',x:400,y:120,w:50,h:28,label:'LED'},
+    ],
+    nodes:[
+      {id:'VCC',x:60,y:90,label:'5V'},
+      {id:'GPIO',x:140,y:80,label:'GPIO'},
+      {id:'RBa',x:198,y:74,label:''},{id:'RBb',x:265,y:74,label:''},
+      {id:'BASE',x:310,y:170,label:'B'},
+      {id:'COL',x:370,y:145,label:'C'},
+      {id:'EMI',x:370,y:225,label:'E'},
+      {id:'RCa',x:338,y:74,label:''},{id:'RCb',x:400,y:74,label:''},
+      {id:'LA',x:400,y:106,label:'A'},{id:'LK',x:455,y:106,label:'K'},
+      {id:'VCC2',x:455,y:60,label:''},
+      {id:'GND',x:370,y:255,label:'GND'},
+      {id:'GND2',x:60,y:255,label:''},
+    ],
+    required:[['VCC','VCC2'],['VCC2','LK'],['LA','RCb'],['RCa','COL'],['GPIO','RBa'],['RBb','BASE'],['EMI','GND'],['GND','GND2'],['GND2','VCC']],
+    hint:'GPIO → Rb → Base. VCC → Rc → LED → Collector. Emitter → GND.',
+  },
+  {
+    id:5,title:'RC Low-Pass Filter',xp:70,
+    desc:'Build an RC low-pass filter. Input on left, output (Vout) between R and C.',
+    components:[
+      {type:'src',x:40,y:140,w:40,h:60,label:'Vin'},
+      {type:'res',x:160,y:100,w:70,h:28,label:'R\n10kΩ'},
+      {type:'cap',x:310,y:90,w:30,h:60,label:'C\n100nF'},
+    ],
+    nodes:[
+      {id:'VIN',x:80,y:140,label:'Vin'},
+      {id:'Ra',x:158,y:114,label:''},{id:'Rb',x:233,y:114,label:''},
+      {id:'VOUT',x:280,y:114,label:'Vout'},
+      {id:'CT',x:310,y:90,label:''},{id:'CB',x:310,y:200,label:''},
+      {id:'GND',x:80,y:200,label:'GND'},{id:'GND2',x:310,y:240,label:''},
+    ],
+    required:[['VIN','Ra'],['Rb','VOUT'],['VOUT','CT'],['CB','GND2'],['GND2','GND']],
+    hint:'R in series, C in parallel to GND after R. Vout between R and C.',
+  },
+];
+
+// ═══════════════════════════════════════
+// FAULT HUNTER DATA (8 cases)
+// ═══════════════════════════════════════
+const FH_CASES=[
+  {title:'Open Resistor',desc:'A simple series circuit has a battery, resistor, and LED. The LED does not light up. You measure full battery voltage across the resistor.',q:'Which component is faulty?',components:[{n:'Battery',x:40,y:130,ok:true},{n:'R1 220Ω',x:180,y:80,ok:false},{n:'LED',x:340,y:80,ok:true},{n:'Wires',x:240,y:190,ok:true}],ans:1,exp:'A 0V measurement with full voltage across the resistor means R1 is open (broken internally). Current can\'t flow → LED stays off.'},
+  {title:'Shorted LED',desc:'Battery + R + LED circuit. LED doesn\'t light. You measure 5V across R and 0V across LED.',q:'What\'s wrong?',components:[{n:'Battery',x:40,y:130,ok:true},{n:'R1 220Ω',x:180,y:80,ok:true},{n:'LED',x:340,y:80,ok:false},{n:'Wires',x:240,y:190,ok:true}],ans:2,exp:'5V across R + 0V across LED = current flows but no voltage drop across LED. LED is short-circuited internally. Replace it.'},
+  {title:'Wrong Polarity',desc:'A new LED circuit is assembled but the LED doesn\'t light. All voltages appear correct.',q:'What is the most likely fault?',components:[{n:'Battery',x:40,y:130,ok:true},{n:'R1',x:180,y:80,ok:true},{n:'LED (reversed)',x:340,y:80,ok:false},{n:'Connection',x:240,y:190,ok:true}],ans:2,exp:'LED connected backwards (anode to negative, cathode to positive). LEDs are diodes — they only conduct in forward bias. Reverse the LED.'},
+  {title:'Burned Resistor',desc:'A circuit that worked fine is now drawing too much current. The resistor feels very hot.',q:'What caused this?',components:[{n:'Power supply',x:40,y:130,ok:true},{n:'R1 (too low)',x:180,y:80,ok:false},{n:'LED',x:340,y:80,ok:true},{n:'Connections',x:240,y:190,ok:true}],ans:1,exp:'Resistor value is too low (or wrong value installed). Too much current flows → P=I²R heats up the resistor. Check actual R value with multimeter.'},
+  {title:'Bad Capacitor',desc:'A power supply has severe ripple even with a smoothing capacitor installed.',q:'What is wrong?',components:[{n:'Rectifier',x:40,y:130,ok:true},{n:'Capacitor',x:180,y:80,ok:false},{n:'Load',x:340,y:80,ok:true},{n:'Transformer',x:240,y:190,ok:true}],ans:1,exp:'The capacitor has failed (dried out, reversed, or wrong value). A bad capacitor can\'t store enough charge to smooth the ripple voltage. Replace with correct rated capacitor.'},
+  {title:'Floating Input',desc:'A microcontroller input reads random 0s and 1s even when nothing is connected.',q:'What is missing?',components:[{n:'MCU Input',x:40,y:130,ok:false},{n:'Signal source',x:180,y:80,ok:true},{n:'Ground',x:340,y:80,ok:true},{n:'Power supply',x:240,y:190,ok:true}],ans:0,exp:'A floating input (unconnected or no pull-up/pull-down resistor) will randomly pick up noise. Add a pull-up to VCC or pull-down to GND to define a default state.'},
+  {title:'Missing Flyback Diode',desc:'An NPN transistor switching a relay suddenly burns out after a few operations.',q:'What is missing in the circuit?',components:[{n:'NPN Transistor',x:40,y:130,ok:false},{n:'Base Resistor',x:180,y:80,ok:true},{n:'Relay coil',x:340,y:80,ok:true},{n:'Flyback Diode',x:240,y:190,ok:true}],ans:0,exp:'When the transistor turns off, the relay coil\'s magnetic field collapses, generating a large voltage spike (Lenz\'s law). Without a flyback diode across the coil, this spike destroys the transistor.'},
+  {title:'Noisy Power Supply',desc:'A digital circuit works perfectly from a lab bench supply but fails randomly when powered from a battery-based PSU.',q:'What is the most likely cause?',components:[{n:'MCU',x:40,y:130,ok:true},{n:'Decoupling Caps',x:180,y:80,ok:false},{n:'Regulator',x:340,y:80,ok:true},{n:'Battery',x:240,y:190,ok:true}],ans:1,exp:'Missing decoupling capacitors (100nF ceramic near each IC power pin) let high-frequency noise couple into the digital circuits. Always place bypass caps as close as possible to IC supply pins.'},
+];
+
+// ═══════════════════════════════════════
+// REPAIR SHOP DATA (6 customers)
+// ═══════════════════════════════════════
+const RS_CASES=[
+  {av:'👨‍🔧',name:'Mark, Factory Tech',prob:'Production line failure',msg:'Our conveyor motor stopped suddenly and won\'t restart. The motor controller shows no errors but the motor is dead. We checked the fuse — it\'s fine.',q:'What is your first diagnostic step?',opts:['Replace the motor immediately','Measure voltage at motor terminals to confirm supply is reaching the motor','Check if the motor is the right color','Call the manufacturer'],ans:1,exp:'Always verify power is reaching the load before replacing components. Measure voltage at motor terminals. If 0V: trace back to find break. If full voltage: motor is suspect.',xp:40},
+  {av:'👩‍💼',name:'Sarah, Office Manager',prob:'All computers dead after lightning',msg:'A lightning storm hit nearby and now none of our computers or network switches work. We have power in the building.',q:'What most likely happened?',opts:['The computers ran out of memory','Surge/lightning induced a voltage spike that destroyed PSUs and network equipment','The building power phase changed','The internet went down'],ans:1,exp:'A nearby lightning strike induces massive voltage surges via power and ethernet cables. Surge protectors and UPS systems can prevent this. All connected equipment needs replacement and surge protection installed.',xp:50},
+  {av:'👴',name:'Hans, Retired Engineer',prob:'Old radio won\'t power on',msg:'My vintage radio from 1978 stopped working. It just clicks and dies. I can smell something slightly burned.',q:'What should you check first?',opts:['Replace the entire radio','Check and replace the electrolytic capacitors — they dry out after 40+ years','Update the firmware','The radio needs a new antenna'],ans:1,exp:'Electrolytic capacitors have a finite lifespan, typically 15-25 years. After 40 years they almost certainly need replacement (capacitor plague). "Recapping" vintage electronics is a common restoration technique.',xp:45},
+  {av:'👨‍🎓',name:'Alex, Engineering Student',prob:'Arduino project keeps resetting',msg:'My Arduino randomly resets during operation. It seems worse when my motor runs. I don\'t have decoupling caps anywhere.',q:'What should you add?',opts:['Faster motors','100nF decoupling capacitors on VCC to GND near each IC and at Arduino power pins','More LEDs','A bigger battery'],ans:1,exp:'Motors create EMI and voltage spikes on the supply. Without decoupling caps, these spikes reach the microcontroller causing resets. Add 100nF ceramic caps near all ICs, and a larger bulk cap (47-100µF) near the motor driver.',xp:40},
+  {av:'👩‍🔬',name:'Dr. Lena, Lab Director',prob:'Signal generator output wrong',msg:'Our function generator shows 1kHz on the display but our oscilloscope shows 2kHz. One of them must be wrong.',q:'How do you determine which instrument is correct?',opts:['Trust the function generator display always','Use a third known-good reference (frequency counter or another calibrated instrument) to verify','Replace both instruments','The oscilloscope is always right'],ans:0,exp:'When two instruments disagree, bring in a third reference. A frequency counter is typically more accurate for frequency measurement. Also check that the oscilloscope timebase is correctly calibrated (1ms/div × 2 cycles visible = 2ms period = 500Hz — reading errors are common).',xp:55},
+  {av:'🧑‍🏭',name:'Tom, Production Manager',prob:'PCB fails QC — intermittent',msg:'About 5% of our PCBs fail testing intermittently. They pass once, fail next test, pass again. Very frustrating.',q:'What is the most common cause of intermittent PCB failures?',opts:['Wrong component values','Cold solder joints — appear connected but have poor electrical contact','Too many components','Wrong PCB color'],ans:1,exp:'Cold solder joints are the #1 cause of intermittent failures. They look shiny (sometimes) but have poor electrical contact that changes with temperature and vibration. Fix: rework soldering, use hot air reflow or reflow in oven. Inspect under magnification.',xp:60},
+];
+
+// ═══════════════════════════════════════
+// COMPONENT COLLECTION (30 components)
+// ═══════════════════════════════════════
+const COMPONENTS=[
+  {id:'res',sym:'⬜',name:'Resistor',cat:'Passive',unit:'Ω / kΩ / MΩ',unlock:0,desc:'Limits current flow. Used in voltage dividers, current limiting, pull-up/pull-down.'},
+  {id:'cap_cer',sym:'⊣⊢',name:'Ceramic Cap',cat:'Passive',unit:'pF / nF',unlock:0,desc:'Small non-polarized capacitor. Ideal for high-frequency decoupling (100nF standard).'},
+  {id:'cap_elec',sym:'⊣+⊢',name:'Electrolytic Cap',cat:'Passive',unit:'µF / mF',unlock:100,desc:'Polarized capacitor with large capacitance. Used for power supply smoothing.'},
+  {id:'ind',sym:'⌇⌇',name:'Inductor',cat:'Passive',unit:'µH / mH / H',unlock:200,desc:'Stores energy in a magnetic field. Used in filters, transformers, switching supplies.'},
+  {id:'dio',sym:'▷|',name:'Diode',cat:'Semiconductor',unit:'Si: 0.7V',unlock:0,desc:'Allows current in one direction only. Used in rectifiers, protection circuits.'},
+  {id:'led_r',sym:'💡',name:'Red LED',cat:'Semiconductor',unit:'Vf=2.0V',unlock:0,desc:'Emits red light. Most common LED. Vf=2.0V, If=20mA typical.'},
+  {id:'led_g',sym:'💚',name:'Green LED',cat:'Semiconductor',unit:'Vf=2.2V',unlock:150,desc:'Emits green light. Slightly higher forward voltage than red.'},
+  {id:'led_b',sym:'💙',name:'Blue LED',cat:'Semiconductor',unit:'Vf=3.2V',unlock:300,desc:'Emits blue light. Higher Vf requires more supply voltage or adjusted resistor.'},
+  {id:'zen',sym:'▷Z',name:'Zener Diode',cat:'Semiconductor',unit:'Vz=2.4-100V',unlock:400,desc:'Regulates voltage in reverse bias at Vz. Used as voltage reference and protection.'},
+  {id:'npn',sym:'⊃NPN',name:'NPN Transistor',cat:'Semiconductor',unit:'β=50-300',unlock:200,desc:'Current-controlled switch/amplifier. Base current controls collector-emitter current.'},
+  {id:'pnp',sym:'⊃PNP',name:'PNP Transistor',cat:'Semiconductor',unit:'β=50-300',unlock:300,desc:'Opposite polarity to NPN. Pulls output high. Used in high-side switching.'},
+  {id:'nmos',sym:'⊃NMOS',name:'N-MOSFET',cat:'Semiconductor',unit:'Vgs_th',unlock:500,desc:'Voltage-controlled switch. Near-zero gate current. Ideal for power switching.'},
+  {id:'pmos',sym:'⊃PMOS',name:'P-MOSFET',cat:'Semiconductor',unit:'Vgs_th',unlock:700,desc:'P-type MOSFET. Used in high-side switches and complementary designs.'},
+  {id:'opamp',sym:'▷▶',name:'Op-Amp',cat:'Linear IC',unit:'A=∞ (ideal)',unlock:800,desc:'High-gain differential amplifier. Used in filters, amplifiers, comparators.'},
+  {id:'ldo',sym:'[LDO]',name:'LDO Regulator',cat:'Linear IC',unit:'Vout fixed',unlock:600,desc:'Linear voltage regulator with low dropout voltage. Simple, low-noise regulation.'},
+  {id:'555',sym:'[555]',name:'555 Timer',cat:'Linear IC',unit:'Hz / PWM',unlock:700,desc:'Versatile timer IC. Modes: monostable (one-shot), astable (oscillator), bistable.'},
+  {id:'and',sym:'D&',name:'AND Gate',cat:'Digital IC',unit:'Y=A·B',unlock:500,desc:'Output HIGH only when all inputs are HIGH. Used in logic combinational circuits.'},
+  {id:'nand',sym:'D↑',name:'NAND Gate',cat:'Digital IC',unit:'Y=!(A·B)',unlock:600,desc:'Universal gate. Output LOW only when all inputs HIGH. Can build any logic from NAND.'},
+  {id:'ff',sym:'[FF]',name:'Flip-Flop',cat:'Digital IC',unit:'D/JK/SR',unlock:900,desc:'Stores one bit. Used in registers, counters, state machines.'},
+  {id:'mcu',sym:'[µC]',name:'Microcontroller',cat:'Digital IC',unit:'MHz / IO',unlock:1500,desc:'CPU + memory + peripherals on one chip. Runs firmware. Core of modern electronics.'},
+  {id:'xtal',sym:'|⊸|',name:'Crystal Oscillator',cat:'Passive',unit:'MHz',unlock:1000,desc:'Provides precise clock frequency for microcontrollers and communication circuits.'},
+  {id:'transformer',sym:'⌇⌇⌇',name:'Transformer',cat:'Passive',unit:'N1:N2',unlock:1200,desc:'Transfers AC power with voltage conversion via magnetic coupling. V1/V2=N1/N2.'},
+  {id:'relay',sym:'[K]',name:'Relay',cat:'Electromechanical',unit:'coil/contact',unlock:800,desc:'Electrically-controlled mechanical switch. Provides isolation between control and load.'},
+  {id:'piezo',sym:'⊙',name:'Piezo Buzzer',cat:'Electromechanical',unit:'Hz',unlock:400,desc:'Generates sound from electrical signal using piezoelectric effect.'},
+  {id:'ntc',sym:'Rt↓',name:'NTC Thermistor',cat:'Sensor',unit:'Ω (T-dep)',unlock:600,desc:'Resistance decreases with temperature. Used in temperature sensing and compensation.'},
+  {id:'ptc',sym:'Rt↑',name:'PTC Thermistor',cat:'Sensor',unit:'Ω (T-dep)',unlock:800,desc:'Resistance increases with temperature. Used as resettable fuse and heating element.'},
+  {id:'hall',sym:'[H]',name:'Hall Sensor',cat:'Sensor',unit:'Gauss/T',unlock:1000,desc:'Detects magnetic fields. Used for non-contact current measurement and position sensing.'},
+  {id:'opto',sym:'LED→T',name:'Optocoupler',cat:'Mixed IC',unit:'CTR ratio',unlock:1200,desc:'Transmits signal via light. Provides galvanic isolation between circuits.'},
+  {id:'mov',sym:'⊕V',name:'Varistor (MOV)',cat:'Protection',unit:'VAC rated',unlock:700,desc:'Resistance drops at overvoltage. Used for surge/lightning protection (MOV).'},
+  {id:'fuse',sym:'—F—',name:'Fuse',cat:'Protection',unit:'A rated',unlock:0,desc:'Protects circuit by permanently breaking at rated current. Single-use overcurrent protection.'},
+];
+
+// ═══════════════════════════════════════
+// SKILL TREE (20 nodes)
+// ═══════════════════════════════════════
+const SKILL_TREE=[
+  {id:'charge',title:'Electric Charge',info:'Electrons, protons, coulombs. The foundation of all electricity.',xp:0,deps:[],x:250,y:30},
+  {id:'ohm',title:'Ohm\'s Law',info:'U = R × I. Master the relationship between voltage, current and resistance.',xp:0,deps:['charge'],x:130,y:110},
+  {id:'safety',title:'Electrical Safety',info:'Safe working voltages, ESD protection, personal protective equipment.',xp:0,deps:['charge'],x:370,y:110},
+  {id:'power',title:'Electrical Power',info:'P = U × I = I²R = U²/R. How energy is consumed.',xp:200,deps:['ohm'],x:60,y:190},
+  {id:'series',title:'Series Circuits',info:'Rs = R1+R2. Same current everywhere. KVL applies.',xp:200,deps:['ohm'],x:200,y:190},
+  {id:'parallel',title:'Parallel Circuits',info:'1/Rp = 1/R1+1/R2. Same voltage. KCL applies.',xp:200,deps:['ohm'],x:340,y:190},
+  {id:'caps',title:'Capacitors',info:'Q = C×U, W = ½CU², τ = RC. Energy storage in electric field.',xp:500,deps:['series','parallel'],x:130,y:280},
+  {id:'coils',title:'Inductors',info:'W = ½LI², XL = 2πfL. Energy storage in magnetic field.',xp:500,deps:['series','parallel'],x:300,y:280},
+  {id:'diodes',title:'Diodes',info:'PN junction, forward bias Vf≈0.7V, rectifiers, zener, LED.',xp:500,deps:['series'],x:450,y:280},
+  {id:'ac',title:'AC Theory',info:'Vrms = Vpeak/√2, f=1/T, phase angles, power factor.',xp:1000,deps:['caps','coils'],x:130,y:370},
+  {id:'bjt',title:'BJT Transistors',info:'NPN/PNP, β=Ic/Ib, saturation, cutoff, switch and amplifier.',xp:1000,deps:['diodes'],x:420,y:370},
+  {id:'filters',title:'RC Filters',info:'fc=1/(2πRC), low-pass, high-pass, -20dB/decade roll-off.',xp:1500,deps:['ac'],x:60,y:460},
+  {id:'opamp',title:'Op-Amps',info:'Inverting/non-inverting, golden rules, comparators, active filters.',xp:2000,deps:['ac','bjt'],x:250,y:460},
+  {id:'mosfet',title:'MOSFETs',info:'Gate-voltage controlled, N/P channel, ideal switch, power electronics.',xp:2000,deps:['bjt'],x:440,y:460},
+  {id:'digital',title:'Digital Logic',info:'Binary, logic gates, truth tables, AND/OR/NOT/NAND/NOR/XOR.',xp:1000,deps:['series'],x:250,y:370},
+  {id:'flipflop',title:'Flip-Flops',info:'D, JK, SR flip-flops. Counters, registers, state machines.',xp:3500,deps:['digital'],x:140,y:530},
+  {id:'adc',title:'ADC & DAC',info:'Analog↔Digital conversion. Resolution, sampling rate, Nyquist.',xp:3500,deps:['digital','opamp'],x:360,y:530},
+  {id:'psu',title:'Power Supplies',info:'Rectifier, smoothing, LDO, SMPS, efficiency, ripple.',xp:4000,deps:['filters','mosfet'],x:60,y:540},
+  {id:'comm',title:'Digital Comms',info:'UART, I2C, SPI protocols. Baud rate, addressing, timing.',xp:5500,deps:['flipflop','adc'],x:250,y:540},
+  {id:'emc',title:'EMC & Noise',info:'EMI, shielding, grounding, decoupling, twisted pair, common mode.',xp:7000,deps:['comm','psu'],x:440,y:540},
+];
+
+// ═══════════════════════════════════════
+// ACCOUNT MANAGEMENT
+// ═══════════════════════════════════════
+function emptyAccount(username,avatar){
+  return{username,avatar,created:new Date().toDateString(),xp:0,
+    achievements:[],settings:{difficulty:'normal'},
+    stats:{quizC:0,quizT:0,faultC:0,faultT:0,calcC:0,calcT:0,cardKnew:0,raceHigh:0,
+      labsDone:[],projsDone:[],wc:[],fhDone:0,rsDone:0,streak:0,lastVisit:'',
+      slidesSeen:0,qInRow:0,examPassed:0,stNodes:[],compUnlocked:[]},
+    projProgress:{},missions:{date:'',done:[]},examOpts:{qs:10,tm:600,tp:'all'}};
+}
+function getAcc(){try{const u=localStorage.getItem('cp_cur')||'';if(!u)return null;return JSON.parse(localStorage.getItem('cp_u_'+u)||'null');}catch{return null;}}
+function saveAcc(acc){localStorage.setItem('cp_u_'+acc.username,JSON.stringify(acc));localStorage.setItem('cp_cur',acc.username);updateLB(acc);}
+function getAllUsers(){const k=[];for(let i=0;i<localStorage.length;i++){const n=localStorage.key(i);if(n&&n.startsWith('cp_u_'))k.push(n.replace('cp_u_',''));}return k;}
+function switchUser(u){localStorage.setItem('cp_cur',u);document.getElementById('switch-modal').style.display='none';initApp();}
+function showSwitchModal(){
+  const users=getAllUsers();const list=document.getElementById('switch-list');
+  list.innerHTML=users.map(u=>{try{const a=JSON.parse(localStorage.getItem('cp_u_'+u)||'{}');const li=getLevelInfo(a.xp||0);return`<div onclick="switchUser('${u}')" style="display:flex;align-items:center;gap:10px;padding:10px 13px;background:var(--c2);border:1px solid var(--bdr);border-radius:var(--rsm);cursor:pointer;"><span style="font-size:1.2rem;">${a.avatar||'👤'}</span><span style="flex:1;font-size:.9rem;font-weight:600;color:var(--txt);">${u}</span><span style="font-size:10px;color:var(--g);font-family:'JetBrains Mono',monospace;">Lv.${li.l}</span></div>`;}catch{return'';}}).join('');
+  document.getElementById('reg-modal').style.display='none';document.getElementById('switch-modal').style.display='flex';
+}
+function createAccount(){
+  const name=document.getElementById('reg-inp').value.trim();
+  if(!name){alert('Enter a username');return;}
+  const av=document.querySelector('.av-btn.sel')?.textContent||'⚡';
+  const acc=emptyAccount(name,av);
+  giveAch(acc,'noob');saveAcc(acc);
+  document.getElementById('reg-modal').style.display='none';initApp();
+}
+function resetAccount(){if(!confirm('Reset all progress?'))return;const acc=getAcc();if(!acc)return;saveAcc(emptyAccount(acc.username,acc.avatar));initApp();}
+
+// ═══════════════════════════════════════
+// XP + ACHIEVEMENTS
+// ═══════════════════════════════════════
+function addXP(amount,reason){
+  const acc=getAcc();if(!acc)return;
+  const before=getLevelInfo(acc.xp);
+  acc.xp+=amount;
+  const after=getLevelInfo(acc.xp);
+  saveAcc(acc);updateHeader();
+  showToast('+'+amount+' XP — '+reason);
+  if(after.l>before.l)showLevelUp(after);
+  checkAllAchs(acc);updateHomeStats();
+}
+function showToast(msg){
+  const t=document.getElementById('xp-toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2400);
+}
+function showLevelUp(li){
+  const el=document.getElementById('lvlup');
+  document.getElementById('lvlup-icon').textContent=li.icon;
+  document.getElementById('lvlup-sub').textContent='You are now '+li.title+' (Level '+li.l+')';
+  el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3000);
+}
+function giveAch(acc,id){
+  if(acc.achievements.includes(id))return false;
+  const a=ACHS.find(x=>x.id===id);if(!a)return false;
+  acc.achievements.push(id);
+  if(a.xp>0){acc.xp+=a.xp;showToast('🏅 Badge: '+a.title+' +'+a.xp+' XP');}
+  else showToast('🏅 Badge: '+a.title);
+  return true;
+}
+function checkAllAchs(acc){
+  const s=acc.stats;const li=getLevelInfo(acc.xp);
+  const g=id=>giveAch(acc,id);
+  if(s.quizC>=1)g('q1');if(s.quizC>=10)g('q10');if(s.quizC>=25)g('q25');
+  if(s.quizC>=50)g('q50');if(s.quizC>=100)g('q100');if(s.quizC>=200)g('q200');
+  if(s.qInRow>=10)g('qp10');if(s.qInRow>=20)g('qp20');
+  if(s.cardKnew>=1)g('c1');if(s.cardKnew>=50)g('c50');if(s.cardKnew>=100)g('c100');
+  if(s.raceHigh>=100)g('r100');if(s.raceHigh>=300)g('r300');if(s.raceHigh>=500)g('r500');if(s.raceHigh>=1000)g('r1000');
+  if(s.faultC>=1)g('f1');if(s.faultC>=5)g('f5');if(s.faultC>=10)g('f10');
+  if(s.faultC>=16)g('f_all');
+  if(s.calcC>=1)g('ca1');if(s.calcC>=5)g('ca5');if(s.calcC>=10)g('ca10');
+  if(s.calcC>=16)g('ca_all');
+  if(s.slidesSeen>=5)g('sl5');if(s.slidesSeen>=20)g('sl_all');
+  if(s.projsDone.length>=1)g('pr1');if(s.projsDone.length>=3)g('pr3');if(s.projsDone.length>=5)g('pr_all');
+  if(s.labsDone.length>=1)g('lab1');if(s.labsDone.length>=4)g('lab_all');
+  if(s.wc&&s.wc.length>=1)g('wc1');if(s.wc&&s.wc.length>=3)g('wc3');if(s.wc&&s.wc.length>=5)g('wc_all');
+  if(s.fhDone>=1)g('fh1');if(s.fhDone>=8)g('fh_all');
+  if(s.rsDone>=1)g('rs1');if(s.rsDone>=6)g('rs_all');
+  if(s.examPassed>=1)g('ex_pass');
+  const compN=s.compUnlocked?s.compUnlocked.length:0;
+  if(compN>=5)g('comp5');if(compN>=15)g('comp15');if(compN>=30)g('comp_all');
+  if(s.stNodes&&s.stNodes.length>=5)g('st5');if(s.stNodes&&s.stNodes.length>=SKILL_TREE.length)g('st_all');
+  if(s.streak>=3)g('s3');if(s.streak>=7)g('s7');if(s.streak>=14)g('s14');if(s.streak>=30)g('s30');
+  if(li.l>=2)g('lv2');if(li.l>=3)g('lv3');if(li.l>=5)g('lv5');if(li.l>=7)g('lv7');if(li.l>=10)g('lv10');
+  if(acc.xp>=100)g('xp100');if(acc.xp>=500)g('xp500');if(acc.xp>=1000)g('xp1000');if(acc.xp>=5000)g('xp5000');
+  const h=new Date().getHours();if(h<7)g('early');if(h>=0&&h<4)g('night');
+  saveAcc(acc);
+}
+function updateStreak(acc){
+  const today=new Date().toDateString();
+  if(acc.stats.lastVisit===today)return;
+  const yest=new Date(Date.now()-86400000).toDateString();
+  acc.stats.streak=acc.stats.lastVisit===yest?acc.stats.streak+1:1;
+  acc.stats.lastVisit=today;
+}
+function updateLB(acc){
+  try{let lb=JSON.parse(localStorage.getItem('cp_lb')||'[]');const idx=lb.findIndex(e=>e.u===acc.username);const e={u:acc.username,av:acc.avatar,xp:acc.xp,race:acc.stats.raceHigh};if(idx>=0)lb[idx]=e;else lb.push(e);localStorage.setItem('cp_lb',JSON.stringify(lb));}catch{}
+}
+
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+function goto(p){
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('on'));
+  document.getElementById('p-'+p).classList.add('on');
+  document.querySelectorAll('.nbtn').forEach(el=>el.classList.remove('on'));
+  document.getElementById('nav-'+p).classList.add('on');
+  if(p==='profil')renderProfile();
+  if(p==='laer'&&document.getElementById('tc-laer-skilltree').classList.contains('on'))renderSkillTree();
+  window.scrollTo(0,0);
+}
+function setTab(page,tab){
+  const pfx='tc-'+page+'-';
+  document.querySelectorAll('[id^="'+pfx+'"]').forEach(el=>el.classList.remove('on'));
+  document.getElementById(pfx+tab).classList.add('on');
+  document.querySelectorAll('#p-'+page+' .tab-bar .tb-btn').forEach(b=>b.classList.remove('on'));
+  const btns=Array.from(document.querySelectorAll('#p-'+page+' .tab-bar .tb-btn'));
+  const idx=btns.findIndex(b=>(b.getAttribute('onclick')||'').includes("'"+tab+"'"));
+  if(idx>=0)btns[idx].classList.add('on');
+  if(tab==='skilltree')renderSkillTree();
+  if(tab==='comp')renderCompCollection();
+  if(tab==='lb')renderLeaderboards();
+  if(tab==='badges')renderAllBadges();
+  if(tab==='wire')renderWireLevels();
+  if(tab==='fhunter')renderFaultHunter();
+  if(tab==='repair')renderRepair();
+  window.scrollTo(0,0);
+}
+function updateHeader(){
+  const acc=getAcc();if(!acc)return;
+  const li=getLevelInfo(acc.xp);
+  document.getElementById('hdr-lvl').textContent='Lv.'+li.l;
+  document.getElementById('hdr-xp').style.width=li.pct+'%';
+  document.getElementById('hdr-xp-num').textContent=acc.xp+' XP';
+  document.getElementById('hdr-av').textContent=acc.avatar;
+}
+function updateHomeStats(){
+  const a=getAcc();if(!a)return;
+  const li=getLvl(a.xp);
+  document.getElementById('hero-eye').textContent='⚡ Welcome back, '+a.username+' — '+li.i+' '+li.t;
+  document.getElementById('home-xp-fill').style.width=li.pct+'%';
+  document.getElementById('home-xp-txt').textContent=a.xp+' / '+(li.nx?li.nx.xp:a.xp)+' XP';
+  document.getElementById('st-q').textContent=a.stats.qT||0;
+  document.getElementById('st-p').textContent=a.stats.qT?Math.round(a.stats.qC/a.stats.qT*100)+'%':'—';
+  document.getElementById('st-r').textContent=a.stats.raceH||'—';
+  document.getElementById('st-s').textContent=a.stats.streakDays?a.stats.streakDays+'🔥':'—';
+  document.getElementById('streak-num').textContent=a.stats.streakDays||0;
+  document.getElementById('dc-xp-today').textContent=a.stats.xpToday||0;
+  renderDailyChallenges();
+}
+function goto(p){
+  document.querySelectorAll('.page').forEach(e=>e.classList.remove('on'));
+  document.getElementById('p-'+p).classList.add('on');
+  document.querySelectorAll('.nbtn').forEach(e=>e.classList.remove('on'));
+  document.getElementById('nav-'+p).classList.add('on');
+  if(p==='profile')renderProfile();
+  window.scrollTo(0,0);
+}
+function setTab(pg,tb){
+  const pre='tc-'+pg+'-';
+  document.querySelectorAll('[id^="'+pre+'"]').forEach(e=>e.classList.remove('on'));
+  document.getElementById(pre+tb).classList.add('on');
+  const btns=Array.from(document.querySelectorAll('#p-'+pg+' .tab-bar .tb'));
+  btns.forEach(b=>b.classList.remove('on'));
+  const idx=btns.findIndex(b=>b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'"+tb+"'"));
+  if(idx>=0)btns[idx].classList.add('on');
+  window.scrollTo(0,0);
+}
+function updateHdr(){
+  const a=getAcc();if(!a)return;
+  const li=getLvl(a.xp);
+  document.getElementById('hdr-lv').textContent='Lv.'+li.l;
+  document.getElementById('hdr-xp').style.width=li.pct+'%';
+  document.getElementById('hdr-xn').textContent=a.xp+' XP';
+  document.getElementById('hdr-av').textContent=a.avatar;
+}
+// ── DAILY CHALLENGES ──
+function getDailyChallenges(){return DAILY_SETS[new Date().getDay()];}
+function renderDailyChallenges(){
+  const a=getAcc();if(!a)return;
+  const today=new Date().toDateString();
+  if(a.stats.dcDate!==today){a.stats.dcDate=today;a.stats.dcProgress={};saveAcc(a);}
+  const chs=getDailyChallenges();
+  document.getElementById('dc-list').innerHTML=chs.map((c,i)=>{
+    const prog=a.stats.dcProgress['dc'+i]||0;const done=prog>=c.n;const pct=Math.min(100,Math.round(prog/c.n*100));
+    return`<div class="dc-card${done?' dc-done':''}"><div class="dc-hdr"><div class="dc-title">${c.lbl}</div><div class="dc-xp">+${c.xp} XP</div></div><div class="dc-bar"><div class="dc-fill" style="width:${pct}%"></div></div><div class="dc-prog-txt">${prog}/${c.n}${done?' ✓':''}</div></div>`;
+  }).join('');
+}
+function trackDC(type){
+  const a=getAcc();if(!a)return;
+  const today=new Date().toDateString();
+  if(a.stats.dcDate!==today){a.stats.dcDate=today;a.stats.dcProgress={};}
+  getDailyChallenges().forEach((c,i)=>{
+    if(c.type===type){
+      const k='dc'+i;const was=a.stats.dcProgress[k]||0;a.stats.dcProgress[k]=was+1;
+      if(was+1===c.n){a.xp+=c.xp;showToast('🎯 Daily challenge: +'+c.xp+' XP!');}
+    }
+  });
+  saveAcc(a);renderDailyChallenges();
+}
+// ── SLIDES ──
+let slIdx=0;
+function renderSlide(){
+  const s=SLIDES[slIdx];
+  document.getElementById('sl-num').textContent=(slIdx+1)+'/'+SLIDES.length;
+  document.getElementById('sl-em').textContent=s.e;document.getElementById('sl-ttl').textContent=s.t;
+  document.getElementById('sl-f').textContent=s.f;
+  document.getElementById('sl-b').innerHTML=s.b.map(x=>`<li style="font-size:.82rem;color:var(--txt2);padding-left:12px;position:relative;line-height:1.45;"><span style="position:absolute;left:0;color:var(--grn);font-weight:700;">·</span>${x}</li>`).join('');
+  document.getElementById('sl-tip').textContent='💡 '+s.tip;
+  document.getElementById('sl-dots').innerHTML=SLIDES.map((_,i)=>`<span style="width:${i===slIdx?'11':'5'}px;height:5px;border-radius:3px;background:${i===slIdx?'var(--grn)':'var(--bdr2)'};transition:width .2s;display:inline-block;"></span>`).join('');
+  const c=document.getElementById('sl-card');c.style.animation='none';void c.offsetWidth;c.style.animation='sIn .2s ease';
+  const a=getAcc();if(a){a.stats.slideSeen=Math.max(a.stats.slideSeen||0,slIdx+1);saveAcc(a);trackDC('slides');}
+}
+function prevSlide(){if(slIdx>0){slIdx--;renderSlide();}}
+function nextSlide(){if(slIdx<SLIDES.length-1){slIdx++;renderSlide();}}
+// ── SKILL TREE ──
+function renderSkillTree(){
+  const a=getAcc();const li=getLvl(a?a.xp:0);
+  document.getElementById('skill-tree-content').innerHTML='<div class="sec">Your Learning Path</div>'+SKILL_TREE.map(ch=>{
+    const unlocked=(a?a.xp:0)>=ch.xp;const done=ch.topics.filter(t=>a&&a.stats['st_'+t.id]).length;const pct=Math.round(done/ch.topics.length*100);
+    return`<div class="chapter-card${unlocked?'':' ch-locked'}"><div class="ch-hdr"><div class="ch-em">${ch.i}</div><div class="ch-info"><div class="ch-title">${ch.t}</div><div class="ch-sub">${unlocked?done+'/'+ch.topics.length+' topics':(ch.xp>0?'Requires '+ch.xp+' XP':'Available')}</div></div>${unlocked?ch.topics.map((_,i)=>`<span class="star${i<done?' on':''}">⭐</span>`).join(''):''}<div class="ch-lock">${unlocked?'':'🔒'}</div></div>${unlocked?ch.topics.map(t=>{const d=a&&a.stats['st_'+t.id];return`<div class="topic-row" onclick="completeTopic('${t.id}')"><div class="topic-dot ${d?'td-done':'td-lock'}"></div><div class="topic-name">${t.n}</div><div class="topic-xp">${d?'✓':'+50 XP'}</div></div>`}).join(''):''}`;
+  }).join('');
+}
+function completeTopic(tid){
+  const a=getAcc();if(!a)return;
+  if(a.stats['st_'+tid]){showToast('Already completed!');return;}
+  a.stats['st_'+tid]=true;saveAcc(a);addXP(50,'Skill unlocked');checkAchs(a);renderSkillTree();
+}
+function renderBlueprints(){
+  const bps=[{t:"Ohm's Law Triangle",q:'Circuit: R=220Ω, U=11V. Calculate I in mA.',o:['5mA','50mA','500mA','0.5mA'],a:1,e:'I=U/R=11/220=0.05A=50mA.'},{t:'Power Calculation',q:'Resistor 47Ω carries 100mA. Power dissipated?',o:['4.7W','0.47W','470mW','47mW'],a:2,e:'P=I²×R=(0.1)²×47=0.47W=470mW.'},{t:'Capacitor Energy',q:'C=10µF, U=5V. Stored energy W in µJ?',o:['125µJ','25µJ','250µJ','50µJ'],a:0,e:'W=½CU²=½×0.00001×25=125µJ.'}];
+  document.getElementById('bp-content').innerHTML='<div class="sec">Blueprint Training</div>'+bps.map((b,i)=>`<div class="qcard mb"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--grn);font-weight:700;margin-bottom:5px;">Blueprint ${i+1}: ${b.t}</div><div class="qtext">${b.q}</div><div>${b.o.map((o,j)=>`<button class="opt" onclick="bpAns(this,${j},${b.a},'${b.e}',${i})">${o}</button>`).join('')}</div><div class="fb" id="bp${i}"></div></div>`).join('');
+}
+function bpAns(btn,idx,ans,exp,i){
+  if(btn.disabled)return;
+  btn.closest('div').querySelectorAll('.opt').forEach((b,j)=>{b.disabled=true;if(j===ans)b.classList.add('correct');else if(j===idx&&idx!==ans)b.classList.add('wrong');});
+  const fb=document.getElementById('bp'+i);fb.style.display='block';fb.className='fb '+(idx===ans?'ok':'bad');fb.innerHTML='<strong>'+(idx===ans?'✓ Correct!':'✗ Wrong')+'</strong>'+exp;
+  if(idx===ans){addXP(20,'Blueprint');trackDC('quiz');}
+}
+// ── QUIZ ──
+let qIdx=0,qAns=false,qSc={c:0,t:0},qOrd=[],qTI=null;
+function renderQ(){
+  if(qIdx>=QUIZ.length){showQDone();return;}
+  const q=QUIZ[qOrd[qIdx]];qAns=false;
+  document.getElementById('q-body').style.display='';document.getElementById('q-done').style.display='none';
+  document.getElementById('q-num').textContent='Q '+(qIdx+1)+'/'+QUIZ.length;document.getElementById('q-sc').textContent=qSc.c+'/'+qSc.t;
+  document.getElementById('q-txt').textContent=q.q;
+  document.getElementById('q-opts').innerHTML=q.o.map((o,i)=>`<button class="opt" onclick="ansQ(${i})">${o}</button>`).join('');
+  const fb=document.getElementById('q-fb');fb.style.display='none';fb.className='fb';document.getElementById('q-nxt').style.display='none';
+  if(qTI)clearInterval(qTI);
+  const a=getAcc();if(a&&a.settings.difficulty==='hard'){
+    document.getElementById('q-timer-bar').style.display='block';let t=15;
+    document.getElementById('q-tbar').style.width='100%';document.getElementById('q-tbar').className='timer-fill';
+    qTI=setInterval(()=>{t--;const pct=t/15*100;const el=document.getElementById('q-tbar');el.style.width=pct+'%';el.className='timer-fill'+(t<=8?' warn':'')+(t<=4?' danger':'');if(t<=0){clearInterval(qTI);ansQ(-1);}},1000);
+  }else document.getElementById('q-timer-bar').style.display='none';
+}
+function ansQ(idx){
+  if(qAns)return;qAns=true;if(qTI)clearInterval(qTI);
+  const q=QUIZ[qOrd[qIdx]];const ok=idx===q.a;qSc.t++;if(ok)qSc.c++;
+  document.querySelectorAll('#q-opts .opt').forEach((b,i)=>{b.disabled=true;if(i===q.a)b.classList.add('correct');else if(i===idx&&!ok)b.classList.add('wrong');});
+  const fb=document.getElementById('q-fb');fb.style.display='block';fb.className='fb '+(ok?'ok':'bad');fb.innerHTML='<strong>'+(ok?'✓ Correct!':'✗ Wrong')+'</strong>'+q.e;
+  document.getElementById('q-sc').textContent=qSc.c+'/'+qSc.t;document.getElementById('q-nxt').style.display='block';
+  const a=getAcc();if(!a)return;a.stats.qT++;if(ok){a.stats.qC++;a.stats.qRow=(a.stats.qRow||0)+1;}else a.stats.qRow=0;
+  saveAcc(a);checkAchs(a);if(ok){addXP(10,'Quiz');trackDC('quiz');}
+}
+function nextQ(){qIdx++;renderQ();}
+function showQDone(){
+  document.getElementById('q-body').style.display='none';document.getElementById('q-done').style.display='';
+  const pct=Math.round(qSc.c/qSc.t*100);
+  document.getElementById('q-ci').textContent=pct>=80?'🏆':pct>=60?'👍':'📚';
+  document.getElementById('q-cs').textContent=qSc.c+' / '+qSc.t;document.getElementById('q-cp').textContent=pct+'% correct';
+  document.getElementById('q-cm').textContent=pct>=90?'Outstanding!':pct>=70?'Good work!':'Keep practising.';
+}
+function restartQ(){qIdx=0;qSc={c:0,t:0};qOrd=shuffle([...Array(QUIZ.length).keys()]);renderQ();}
+// ── FLASHCARDS ──
+let fcIdx=0,fcFlip=false,fcOrd=[],fcK=0,fcM=0;
+function renderCard(){
+  const c=CARDS[fcOrd[fcIdx%CARDS.length]];fcFlip=false;
+  document.getElementById('fc-in').classList.remove('flip');
+  document.getElementById('fc-front').textContent=c.f;document.getElementById('fc-back').textContent=c.b;
+  document.getElementById('fc-num').textContent=(fcIdx%CARDS.length+1)+'/'+CARDS.length;
+  document.getElementById('fc-hint').textContent='👆 Tap to flip';document.getElementById('fc-btns').style.display='none';updateCPBar();
+}
+function flipCard(){fcFlip=!fcFlip;document.getElementById('fc-in').classList.toggle('flip',fcFlip);document.getElementById('fc-hint').textContent=fcFlip?'👆 Tap to flip back':'👆 Tap to flip';if(fcFlip)document.getElementById('fc-btns').style.display='flex';}
+function cardResult(knew){if(knew)fcK++;else fcM++;fcIdx++;const a=getAcc();if(a&&knew){a.stats.cardK=(a.stats.cardK||0)+1;saveAcc(a);checkAchs(a);addXP(5,'Flashcard');trackDC('cards');}if(fcIdx%CARDS.length===0){document.getElementById('fc-front').textContent='🎉 Round complete!';document.getElementById('fc-back').textContent=fcK+'/'+CARDS.length+' known.';document.getElementById('fc-in').classList.remove('flip');document.getElementById('fc-btns').style.display='none';document.getElementById('fc-hint').textContent='Tap Shuffle to restart';fcK=0;fcM=0;}else renderCard();}
+function shuffleCards(){fcOrd=shuffle([...Array(CARDS.length).keys()]);fcIdx=0;fcK=0;fcM=0;renderCard();}
+function updateCPBar(){const t=CARDS.length,d=fcK+fcM;document.getElementById('cp-fill').style.width=Math.round(d/t*100)+'%';document.getElementById('cp-k').textContent='✓ '+fcK;document.getElementById('cp-m').textContent='✗ '+fcM;document.getElementById('cp-l').textContent=(t-d)+' left';}
+// ── RACE ──
+let rDur=60,rTime=60,rScore=0,rC=0,rT=0,rIntvl=null,rDeck=[],rIdx=0,rFlip=false,rStart=0;
+function setRD(btn,s){rDur=s;document.querySelectorAll('.rdiff').forEach(b=>b.classList.remove('on'));btn.classList.add('on');}
+function startRace(){rTime=rDur;rScore=0;rC=0;rT=0;rDeck=shuffle([...CARDS]);rIdx=0;rFlip=false;document.getElementById('r-setup').style.display='none';document.getElementById('r-done').style.display='none';document.getElementById('r-active').style.display='';document.getElementById('r-t').textContent=rTime;document.getElementById('r-t').style.color='var(--grn)';document.getElementById('r-sc').textContent=0;rIntvl=setInterval(()=>{rTime--;document.getElementById('r-t').textContent=rTime;if(rTime<=10)document.getElementById('r-t').style.color='var(--red)';if(rTime<=0)endRace();},1000);showRCard();}
+function showRCard(){if(rIdx>=rDeck.length)rIdx=0;const c=rDeck[rIdx];document.getElementById('r-front').textContent=c.f;document.getElementById('r-back').textContent=c.b;document.getElementById('r-in').classList.remove('flip');document.getElementById('r-btns').style.display='none';document.getElementById('r-hint').textContent='👆 Tap to reveal';rFlip=false;rStart=Date.now();}
+function raceFlip(){if(rFlip)return;rFlip=true;document.getElementById('r-in').classList.add('flip');document.getElementById('r-btns').style.display='flex';document.getElementById('r-hint').textContent='';}
+function raceAns(knew){rT++;if(knew){rC++;const el=(Date.now()-rStart)/1000;rScore+=(el<3?15:el<6?10:5);document.getElementById('r-sc').textContent=rScore;trackDC('cards');}rIdx++;showRCard();}
+function endRace(){clearInterval(rIntvl);document.getElementById('r-active').style.display='none';document.getElementById('r-done').style.display='';document.getElementById('r-final').textContent=rScore+' points';document.getElementById('r-stats').textContent=rC+' / '+rT+' correct';const a=getAcc();if(a){const old=a.stats.raceH||0;if(rScore>old){a.stats.raceH=rScore;document.getElementById('r-pb').textContent='🎉 New personal best!';saveAcc(a);}else document.getElementById('r-pb').textContent='Best: '+old+' points';checkAchs(a);addXP(Math.round(rScore/8),'Race Mode');}}
+// ── EXAM ──
+let exOrd=[],exIdx=0,exSc={c:0,t:0},exTI=null,exMins=44,exSecs=59;
+function startExam(){exOrd=shuffle([...Array(QUIZ.length).keys()]).slice(0,25);exIdx=0;exSc={c:0,t:0};exMins=44;exSecs=59;document.getElementById('exam-setup').style.display='none';document.getElementById('exam-done').style.display='none';document.getElementById('exam-active').style.display='';renderExam();exTI=setInterval(()=>{exSecs--;if(exSecs<0){exSecs=59;exMins--;}if(exMins<0)finishExam(true);const ts=String(exMins).padStart(2,'0')+':'+String(exSecs).padStart(2,'0');const el=document.getElementById('ex-timer');el.textContent=ts;el.className='exam-timer'+(exMins<5?' danger':exMins<10?' warn':'');},1000);}
+function renderExam(){if(exIdx>=25){finishExam(false);return;}const q=QUIZ[exOrd[exIdx]];document.getElementById('ex-num').textContent=exIdx+1;document.getElementById('ex-sc').textContent=exSc.c+'/'+exSc.t;document.getElementById('ex-txt').textContent=q.q;document.getElementById('ex-opts').innerHTML=q.o.map((o,i)=>`<button class="opt" onclick="ansExam(${i})">${o}</button>`).join('');const fb=document.getElementById('ex-fb');fb.style.display='none';fb.className='fb';document.getElementById('ex-nxt').style.display='none';}
+let exFlip=false;
+function ansExam(idx){if(exFlip)return;exFlip=true;const q=QUIZ[exOrd[exIdx]];const ok=idx===q.a;exSc.t++;if(ok)exSc.c++;document.querySelectorAll('#ex-opts .opt').forEach((b,i)=>{b.disabled=true;if(i===q.a)b.classList.add('correct');else if(i===idx&&!ok)b.classList.add('wrong');});const fb=document.getElementById('ex-fb');fb.style.display='block';fb.className='fb '+(ok?'ok':'bad');fb.innerHTML='<strong>'+(ok?'✓ Correct':'✗ Wrong')+'</strong>'+q.e;document.getElementById('ex-nxt').style.display='block';}
+function nextExam(){exIdx++;exFlip=false;renderExam();}
+function finishExam(to){clearInterval(exTI);document.getElementById('exam-active').style.display='none';document.getElementById('exam-done').style.display='';const pct=Math.round(exSc.c/25*100);const G=[{m:90,g:'12',n:'Outstanding'},{m:80,g:'10',n:'Excellent'},{m:70,g:'7',n:'Good'},{m:55,g:'4',n:'Passed'},{m:40,g:'02',n:'Barely passed'},{m:20,g:'00',n:'Failed'},{m:0,g:'-3',n:'Retake required'}];const gr=G.find(x=>pct>=x.m)||G[G.length-1];document.getElementById('exam-grade').textContent=gr.g;document.getElementById('exam-grade-name').textContent=gr.n;document.getElementById('exam-score').textContent=exSc.c+' / 25';document.getElementById('exam-pct').textContent=pct+'%'+(to?' (time expired)':'');document.getElementById('exam-msg').textContent=pct>=55?'Passed with grade '+gr.g+'!':'Grade '+gr.g+'. Review slides and retake.';const a=getAcc();if(a){a.stats.examBest=Math.max(a.stats.examBest||-1,pct);saveAcc(a);checkAchs(a);addXP(Math.round(pct*2),'Exam');}}
+function showCertificate(){const a=getAcc();const pct=Math.round(exSc.c/25*100);alert('📜 CercuitPilot Certificate\n\nStudent: '+(a?.username||'—')+'\nScore: '+exSc.c+'/25 ('+pct+'%)\nDate: '+new Date().toLocaleDateString()+'  \n\nCongratulations from CercuitPilot!');}
+// ── HARDCORE ──
+let hcOrd=[],hcIdx=0,hcLives=3,hcSc={c:0,t:0},hcAns=false,hcTI=null;
+function startHC(){hcOrd=shuffle([...Array(QUIZ.length).keys()]);hcIdx=0;hcLives=3;hcSc={c:0,t:0};hcAns=false;document.getElementById('hc-setup').style.display='none';document.getElementById('hc-done').style.display='none';document.getElementById('hc-active').style.display='';renderHC();}
+function renderHC(){
+  document.getElementById('hc-lives').innerHTML='Lives: '+[...Array(3)].map((_,i)=>`<span class="life${i>=hcLives?' lost':''}">❤️</span>`).join('');
+  if(hcIdx>=QUIZ.length){finishHC(true);return;}
+  const q=QUIZ[hcOrd[hcIdx]];hcAns=false;
+  document.getElementById('hc-txt').textContent=q.q;document.getElementById('hc-opts').innerHTML=q.o.map((o,i)=>`<button class="opt" onclick="ansHC(${i})">${o}</button>`).join('');
+  const fb=document.getElementById('hc-fb');fb.style.display='none';fb.className='fb';document.getElementById('hc-nxt').style.display='none';
+  if(hcTI)clearInterval(hcTI);let t=15;document.getElementById('hc-tbar').style.width='100%';document.getElementById('hc-tbar').className='timer-fill';
+  hcTI=setInterval(()=>{t--;const el=document.getElementById('hc-tbar');el.style.width=(t/15*100)+'%';el.className='timer-fill'+(t<=8?' warn':'')+(t<=4?' danger':'');if(t<=0){clearInterval(hcTI);ansHC(-1);}},1000);
+}
+function ansHC(idx){
+  if(hcAns)return;hcAns=true;if(hcTI)clearInterval(hcTI);
+  const q=QUIZ[hcOrd[hcIdx]];const ok=idx===q.a;hcSc.t++;if(ok)hcSc.c++;else{hcLives--;if(hcLives<=0){document.querySelectorAll('#hc-opts .opt').forEach(b=>b.disabled=true);const fb=document.getElementById('hc-fb');fb.style.display='block';fb.className='fb bad';fb.innerHTML='<strong>💀 Out of lives!</strong>Answer: '+q.o[q.a];setTimeout(()=>finishHC(false),1500);return;}}
+  document.querySelectorAll('#hc-opts .opt').forEach((b,i)=>{b.disabled=true;if(i===q.a)b.classList.add('correct');else if(i===idx&&!ok)b.classList.add('wrong');});
+  const fb=document.getElementById('hc-fb');fb.style.display='block';fb.className='fb '+(ok?'ok':'bad');fb.innerHTML='<strong>'+(ok?'✓ Correct!':'✗ Wrong — lost a life')+'</strong>'+q.e;
+  document.getElementById('hc-nxt').style.display='block';document.getElementById('hc-lives').innerHTML='Lives: '+[...Array(3)].map((_,i)=>`<span class="life${i>=hcLives?' lost':''}">❤️</span>`).join('');
+}
+function nextHC(){hcIdx++;renderHC();}
+function finishHC(won){document.getElementById('hc-active').style.display='none';document.getElementById('hc-done').style.display='';document.getElementById('hc-ci').textContent=won?'🏆':'💀';document.getElementById('hc-cs').textContent=hcSc.c+' / '+hcSc.t;document.getElementById('hc-cp').textContent=won?'YOU SURVIVED!':'Game Over';document.getElementById('hc-cm').textContent=won?'Amazing! Hardcore clear. 3× XP!':'Practice and return stronger.';const a=getAcc();if(!a)return;if(won){a.stats.hcDone=true;addXP(hcSc.c*30,'Hardcore Clear!');}else addXP(hcSc.c*10,'Hardcore');saveAcc(a);checkAchs(a);}
+// ── CALC ──
+let caIdx=0,caAns=false,caSc={c:0,t:0};
+function renderCalc2(){const c=CALC[caIdx%CALC.length];caAns=false;document.getElementById('ca-num').textContent=(caIdx%CALC.length+1)+'/'+CALC.length;document.getElementById('ca-sc').textContent=caSc.c+'/'+caSc.t;document.getElementById('ca-s').textContent=c.s;document.getElementById('ca-q').textContent=c.q;document.getElementById('ca-unit').textContent=c.u;document.getElementById('ca-inp').value='';document.getElementById('ca-hint').style.display='none';document.getElementById('ca-hint').textContent='💡 '+c.h;const fb=document.getElementById('ca-fb');fb.style.display='none';fb.className='fb';document.getElementById('ca-nxt').style.display='none';}
+function checkCalc(){if(caAns)return;const c=CALC[caIdx%CALC.length];const val=parseFloat((document.getElementById('ca-inp').value||'').replace(',','.'));const fb=document.getElementById('ca-fb');if(isNaN(val)){fb.style.display='block';fb.className='fb bad';fb.innerHTML='<strong>Invalid number</strong>';return;}caAns=true;const ok=Math.abs(val-c.a)<=c.t;caSc.t++;if(ok)caSc.c++;fb.style.display='block';fb.className='fb '+(ok?'ok':'bad');fb.innerHTML='<strong>'+(ok?'✓ Correct!':'✗ Wrong — answer is '+c.a+' '+c.u)+'</strong>'+c.e;document.getElementById('ca-sc').textContent=caSc.c+'/'+caSc.t;document.getElementById('ca-nxt').style.display='block';const a=getAcc();if(!a)return;a.stats.cT=(a.stats.cT||0)+1;if(ok){a.stats.cC=(a.stats.cC||0)+1;addXP(20,'Calculation');trackDC('calc');}saveAcc(a);checkAchs(a);}
+function nextCalc(){caIdx++;renderCalc2();}
+// ── WIRE CHALLENGE ──
+let wcIdx=0,wcAns=false,wcSc={c:0,t:0};
+function renderWC(){const w=WIRE_CHALLENGES[wcIdx%WIRE_CHALLENGES.length];wcAns=false;document.getElementById('wc-num').textContent=(wcIdx%WIRE_CHALLENGES.length+1)+'/'+WIRE_CHALLENGES.length;document.getElementById('wc-sc').textContent=wcSc.c+'/'+wcSc.t;document.getElementById('wc-title').textContent=w.title;document.getElementById('wc-circuit').textContent=w.circuit;document.getElementById('wc-q').textContent=w.q;document.getElementById('wc-opts').innerHTML=w.o.map((o,i)=>`<button class="opt" onclick="ansWC(${i})">${o}</button>`).join('');const fb=document.getElementById('wc-fb');fb.style.display='none';fb.className='fb';document.getElementById('wc-nxt').style.display='none';}
+function ansWC(idx){if(wcAns)return;wcAns=true;const w=WIRE_CHALLENGES[wcIdx%WIRE_CHALLENGES.length];const ok=idx===w.a;wcSc.t++;if(ok)wcSc.c++;document.querySelectorAll('#wc-opts .opt').forEach((b,i)=>{b.disabled=true;if(i===w.a)b.classList.add('correct');else if(i===idx&&!ok)b.classList.add('wrong');});const fb=document.getElementById('wc-fb');fb.style.display='block';fb.className='fb '+(ok?'ok':'bad');fb.innerHTML='<strong>'+(ok?'✓ Correct!':'✗ Wrong')+'</strong>'+w.e;document.getElementById('wc-sc').textContent=wcSc.c+'/'+wcSc.t;document.getElementById('wc-nxt').style.display='block';const a=getAcc();if(!a)return;if(ok){a.stats.wcDone=(a.stats.wcDone||0)+1;addXP(w.xp,'Wire Challenge');trackDC('wc');}saveAcc(a);checkAchs(a);}
+function nextWC(){wcIdx++;renderWC();}
+// ── FAULT HUNTER ──
+let fhIdx=0,fhAns=false,fhSc={c:0,t:0};
+function renderFH(){const f=FAULT_HUNTER[fhIdx%FAULT_HUNTER.length];fhAns=false;document.getElementById('fh-num').textContent=(fhIdx%FAULT_HUNTER.length+1)+'/'+FAULT_HUNTER.length;document.getElementById('fh-sc').textContent=fhSc.c+'/'+fhSc.t;document.getElementById('fh-title').textContent=f.title;document.getElementById('fh-s').textContent=f.s;document.getElementById('fh-sym').textContent=f.sym;document.getElementById('fh-q').textContent=f.q;document.getElementById('fh-opts').innerHTML=f.o.map((o,i)=>`<button class="opt" onclick="ansFH(${i})">${o}</button>`).join('');const fb=document.getElementById('fh-fb');fb.style.display='none';fb.className='fb';document.getElementById('fh-nxt').style.display='none';}
+function ansFH(idx){if(fhAns)return;fhAns=true;const f=FAULT_HUNTER[fhIdx%FAULT_HUNTER.length];const ok=idx===f.a;fhSc.t++;if(ok)fhSc.c++;document.querySelectorAll('#fh-opts .opt').forEach((b,i)=>{b.disabled=true;if(i===f.a)b.classList.add('correct');else if(i===idx&&!ok)b.classList.add('wrong');});const fb=document.getElementById('fh-fb');fb.style.display='block';fb.className='fb '+(ok?'ok':'bad');fb.innerHTML='<strong>'+(ok?'✓ Correct!':'✗ Wrong')+'</strong>'+f.e;document.getElementById('fh-sc').textContent=fhSc.c+'/'+fhSc.t;document.getElementById('fh-nxt').style.display='block';const a=getAcc();if(!a)return;a.stats.fT=(a.stats.fT||0)+1;if(ok){a.stats.fC=(a.stats.fC||0)+1;addXP(15,'Fault Hunter');trackDC('fault');}saveAcc(a);checkAchs(a);}
+function nextFH(){fhIdx++;renderFH();}
+// ── LAB ──
+let ohmSolve='u';
+function setSolve(v,btn){ohmSolve=v;document.querySelectorAll('.sb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');ohmUpdate();}
+function ohmUpdate(){const av=parseFloat(document.getElementById('ohm-a').value)||0;const bv=parseFloat(document.getElementById('ohm-b').value)||0;let u,r,i;if(ohmSolve==='u'){r=av;i=bv;u=r*i;document.getElementById('ohm-la').textContent='Resistance R';document.getElementById('ohm-lav').textContent=av+'Ω';document.getElementById('ohm-lb').textContent='Current I';document.getElementById('ohm-lbv').textContent=bv+'A';document.getElementById('ohm-u').textContent=u.toFixed(3);document.getElementById('ohm-r').textContent=r;document.getElementById('ohm-i').textContent=i.toFixed(4);document.getElementById('ohm-formula').textContent='U=R×I='+r+'×'+i+'='+u.toFixed(3)+'V';}else if(ohmSolve==='r'){u=av;i=bv;r=i>0?u/i:0;document.getElementById('ohm-la').textContent='Voltage U';document.getElementById('ohm-lav').textContent=av+'V';document.getElementById('ohm-lb').textContent='Current I';document.getElementById('ohm-lbv').textContent=bv+'A';document.getElementById('ohm-u').textContent=u;document.getElementById('ohm-r').textContent=r.toFixed(2);document.getElementById('ohm-i').textContent=i;document.getElementById('ohm-formula').textContent='R=U/I='+u+'/'+i+'='+r.toFixed(2)+'Ω';}else{u=av;r=bv;i=r>0?u/r:0;document.getElementById('ohm-la').textContent='Voltage U';document.getElementById('ohm-lav').textContent=av+'V';document.getElementById('ohm-lb').textContent='Resistance R';document.getElementById('ohm-lbv').textContent=bv+'Ω';document.getElementById('ohm-u').textContent=u;document.getElementById('ohm-r').textContent=r;document.getElementById('ohm-i').textContent=i.toFixed(4);document.getElementById('ohm-formula').textContent='I=U/R='+u+'/'+r+'='+i.toFixed(4)+'A';}}
+function ledUpdate(){const vs=parseFloat(document.getElementById('vs-sl').value);const rs=parseFloat(document.getElementById('rs-sl').value);const vf=parseFloat(document.getElementById('led-type').value);document.getElementById('vs-v').textContent=vs.toFixed(1)+'V';document.getElementById('rs-v').textContent=rs+'Ω';const ifA=(vs-vf)/rs,ifMA=ifA*1000,pr=ifA*ifA*rs*1000;document.getElementById('led-if').textContent=ifMA>0?ifMA.toFixed(1):'0.0';document.getElementById('led-pr').textContent=ifMA>0?pr.toFixed(1):'0';let st='OK',op=0;if(ifMA<=0){st='Off';op=0;}else if(ifMA<5){st='Dim';op=0.15;}else if(ifMA<15){st='Low';op=0.5;}else if(ifMA<=25){st='✓ OK';op=1;}else if(ifMA<=40){st='Bright';op=1;}else{st='⚠ Too high';op=1;}document.getElementById('led-st').textContent=st;document.getElementById('led-viz').style.filter='brightness('+Math.max(0.05,op*2)+') drop-shadow(0 0 '+(op*12)+'px #ff0)';}
+let rcAF=null,rcS2=null,rcTau=1;
+function rcUpdate(){const r=parseFloat(document.getElementById('rc-r').value);const c=parseFloat(document.getElementById('rc-c').value);document.getElementById('rc-rv').textContent=r+' kΩ';document.getElementById('rc-cv').textContent=c+' µF';rcTau=(r*1000)*(c/1000000);document.getElementById('rc-tau').textContent='τ='+rcTau.toFixed(2)+'s  ·  5τ='+(rcTau*5).toFixed(2)+'s';}
+function startRC(){stopRC();rcS2=null;const dur=rcTau*1000;function step(ts){if(!rcS2)rcS2=ts;const el=ts-rcS2;const pct=(1-Math.exp(-el/dur))*100;document.getElementById('rc-fill').style.width=Math.min(pct,99.9)+'%';document.getElementById('rc-pct').textContent=pct.toFixed(1)+'% ('+((el/1000)/rcTau).toFixed(1)+'τ)';if(pct<99.3)rcAF=requestAnimationFrame(step);else document.getElementById('rc-pct').textContent='99.3% — Fully charged (5τ)';}rcAF=requestAnimationFrame(step);}
+function stopRC(){if(rcAF){cancelAnimationFrame(rcAF);rcAF=null;rcS2=null;}}
+let gA=0,gB=0;
+function gateUpdate(){const g=document.getElementById('gate-sel').value;let out;if(g==='AND')out=gA&gB;else if(g==='OR')out=gA|gB;else if(g==='NOT')out=gA?0:1;else if(g==='NAND')out=(gA&gB)?0:1;else if(g==='NOR')out=(gA|gB)?0:1;else out=gA^gB;const el=document.getElementById('g-out');el.textContent=out;el.className='g-ov '+(out?'hi':'lo');renderTT(g);}
+function toggleGate(w){if(w==='a'){gA=gA?0:1;const b=document.getElementById('g-a');b.textContent='A='+gA;b.classList.toggle('hi',!!gA);}else{gB=gB?0:1;const b=document.getElementById('g-b');b.textContent='B='+gB;b.classList.toggle('hi',!!gB);}gateUpdate();}
+function gc(g,a,b){if(g==='AND')return a&b;if(g==='OR')return a|b;if(g==='NOT')return a?0:1;if(g==='NAND')return(a&b)?0:1;if(g==='NOR')return(a|b)?0:1;return a^b;}
+function renderTT(g){const rows=g==='NOT'?[[0],[1]]:[[0,0],[0,1],[1,0],[1,1]];const isNot=g==='NOT';let h='<tr><th>A</th>'+(isNot?'':'<th>B</th>')+'<th>Y</th></tr>';rows.forEach(r=>{const out=gc(g,r[0],r[1]||0);const cur=r[0]===gA&&(isNot||r[1]===gB);h+='<tr class="'+(cur?'hl':'')+'"><td>'+r[0]+'</td>'+(isNot?'':'<td>'+r[1]+'</td>')+'<td><b>'+out+'</b></td></tr>';});document.getElementById('g-tt').innerHTML=h;}
+function completeLab(id,btnId){const a=getAcc();if(!a)return;if(a.stats.labsDone.includes(id)){showToast('Already done!');return;}a.stats.labsDone.push(id);saveAcc(a);checkAchs(a);addXP(30,'Lab: '+id);const b=document.getElementById(btnId);if(b){b.textContent='✓ Completed!';b.disabled=true;}}
+// ── REPAIR SHOP ──
+let repairIdx=0,repairAns=false;
+function renderRepair(){
+  const r=REPAIRS[repairIdx%REPAIRS.length];repairAns=false;
+  document.getElementById('repair-content').innerHTML=`<div class="repair-header"><div class="repair-av">🧑‍🔧</div><div class="repair-info"><div class="repair-customer">${r.customer}</div><div class="repair-device">${r.device}</div></div><div class="repair-reward">+${r.xp} XP</div></div><div class="repair-body"><div class="complaint-card"><div class="complaint-lbl">Customer complaint</div><div class="complaint-txt">${r.complaint}</div></div><div class="sec">Tools</div><div class="tool-row">${r.tools.map(t=>`<button class="tool-btn" onclick="useTool('${t}',${repairIdx})">${t}</button>`).join('')}</div><div class="sec">Measurements</div><div class="measurement-box" id="mbox">← Select a tool to take measurements</div><div class="sec" style="margin-top:11px;">Diagnosis</div><div style="font-size:.88rem;font-weight:600;color:var(--txt);margin-bottom:9px;">What is the fault?</div><div>${r.o.map((o,i)=>`<button class="opt" onclick="ansRepair(${i})">${o}</button>`).join('')}</div><div class="fb" id="repair-fb"></div><button class="nxt-btn" id="repair-nxt" onclick="nextRepair()">Next customer →</button></div>`;
+}
+function useTool(tool,idx){const r=REPAIRS[idx%REPAIRS.length];document.querySelectorAll('.tool-btn').forEach(b=>b.classList.toggle('on',b.textContent===tool));const m=document.getElementById('mbox');if(tool==='Multimeter'&&r.measurements.voltmeter)m.textContent=r.measurements.voltmeter.join('\n');else if(tool==='Oscilloscope'&&r.measurements.oscope)m.textContent=r.measurements.oscope.join('\n');else m.textContent='No readings for '+tool+' on this job.';}
+function ansRepair(idx){if(repairAns)return;repairAns=true;const r=REPAIRS[repairIdx%REPAIRS.length];const ok=idx===r.a;document.querySelectorAll('#repair-content .opt').forEach((b,i)=>{b.disabled=true;if(i===r.a)b.classList.add('correct');else if(i===idx&&!ok)b.classList.add('wrong');});const fb=document.getElementById('repair-fb');fb.style.display='block';fb.className='fb '+(ok?'ok':'bad');fb.innerHTML='<strong>'+(ok?'✓ Correct diagnosis!':'✗ Wrong')+'</strong>'+r.e;document.getElementById('repair-nxt').style.display='block';const a=getAcc();if(!a)return;if(ok){a.stats.rsDone=(a.stats.rsDone||0)+1;addXP(r.xp,'Repair job');trackDC('repair');}saveAcc(a);checkAchs(a);}
+function nextRepair(){repairIdx++;renderRepair();}
+// ── COLLECTION ──
+function renderCollection(){const a=getAcc();const li=getLvl(a?a.xp:0);document.getElementById('comp-grid').innerHTML=COMPONENTS_DATA.map(c=>{const u=li.l>=c.lvl;return`<div class="comp-card${u?'':' locked'}" onclick="${u?`showComp('${c.id}')`:''}">${'<div class="comp-sym">'+c.s+'</div>'}<div class="comp-name">${c.n}</div><div class="comp-lbl">${c.d}</div><div class="comp-unlock">${u?c.u:'🔒 Lv.'+c.lvl}</div></div>`;}).join('');}
+function showComp(id){const c=COMPONENTS_DATA.find(x=>x.id===id);if(!c)return;alert('📦 '+c.n+'\n\n'+c.d+'\n\nUnit: '+c.u);}
+// ── PROJECTS ──
+function renderProjList(){const a=getAcc();document.getElementById('proj-list').innerHTML='<div class="sec">Guided Projects</div>'+PROJECTS.map(p=>{const done=a&&a.stats.projsDone.includes(p.id);const prog=a&&a.projProgress?a.projProgress[p.id]||0:0;const pct=Math.round(prog/p.steps.length*100);return`<div class="proj-card" onclick="openProj('${p.id}')"><div class="proj-hdr-row"><div class="proj-em">${p.i}</div><div><div class="proj-title">${p.t}</div><span class="badge-pill bp-${p.lv==='Beginner'?'b':p.lv==='Intermediate'?'i':'a'}">${p.lv}</span></div></div><div class="proj-desc">${p.d}</div><div class="proj-foot"><span class="proj-xp">${done?'✓ Done':'⚡ '+p.xp+' XP'}</span><div class="proj-bar"><div class="proj-fill" style="width:${pct}%"></div></div><span style="font-size:9px;color:var(--txt3);">${prog}/${p.steps.length}</span></div></div>`;}).join('');}
+function openProj(id){const p=PROJECTS.find(x=>x.id===id);if(!p)return;document.getElementById('proj-list').style.display='none';document.getElementById('proj-detail').style.display='';const a=getAcc();const progress=a&&a.projProgress?a.projProgress[id]||0:0;let html=`<div class="proj-card" style="cursor:default;margin-bottom:11px;"><div class="proj-hdr-row"><div class="proj-em">${p.i}</div><div class="proj-title">${p.t}</div></div><div class="proj-desc">${p.d}</div></div>`;p.steps.forEach((st,i)=>{const done=i<progress;const cur=i===progress;html+=`<div style="background:var(--bgc);border:1px solid var(--bdr);border-radius:var(--rsm);padding:11px;margin-bottom:8px;${done?'opacity:.55;pointer-events:none;':''}"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--txt3);font-weight:700;margin-bottom:4px;">Step ${i+1}: ${st.n}</div><div style="font-size:.86rem;font-weight:500;color:var(--txt);margin-bottom:9px;line-height:1.5;">${st.q}</div>`;if(done)html+=`<div style="font-size:.78rem;color:var(--gdim);background:var(--gpale);padding:5px 8px;border-radius:6px;">✓ Done</div>`;else if(cur){if(st.type==='mcq')html+=st.opts.map((o,j)=>`<button class="opt" onclick="projMCQ('${id}',${i},${j})">${o}</button>`).join('');else html+=`<div style="display:flex;gap:7px;margin-bottom:8px;"><input type="number" id="pi-${id}-${i}" style="flex:1;height:44px;border:1px solid var(--bdr2);border-radius:var(--rsm);background:var(--bgc2);color:var(--txt);font-size:.95rem;font-family:'JetBrains Mono',monospace;padding:0 10px;" placeholder="Answer..."><div style="background:var(--bgc2);border:1px solid var(--bdr2);border-radius:var(--rsm);padding:0 9px;height:44px;display:flex;align-items:center;font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--grn);">${st.u}</div></div><button style="font-size:.78rem;color:var(--txt3);background:transparent;border:1px solid var(--bdr2);border-radius:6px;padding:5px 9px;cursor:pointer;margin-bottom:7px;" onclick="document.getElementById('phint-${id}-${i}').style.display='block'">💡 Hint</button><div id="phint-${id}-${i}" style="background:var(--apale);border-left:3px solid var(--amb);border-radius:0 7px 7px 0;padding:7px 10px;font-size:.76rem;color:var(--txt2);margin-bottom:8px;display:none;">${st.h}</div><button class="btn-g" onclick="projCalc('${id}',${i})">Check</button>`;html+=`<div class="fb" id="pfb-${id}-${i}"></div><button class="nxt-btn" id="pnxt-${id}-${i}" onclick="projNext('${id}',${i})">Next step →</button>`;}html+='</div>';});if(progress>=p.steps.length)html+=`<div class="cpl"><div class="cpl-i">🏆</div><div class="cpl-s">${p.t}</div><div class="cpl-p">Completed!</div><div class="cpl-m">All ${p.steps.length} steps done.</div></div>`;document.getElementById('proj-steps').innerHTML=html;}
+function projMCQ(pid,si,oi){const p=PROJECTS.find(x=>x.id===pid);const st=p.steps[si];const ok=oi===st.ans;document.querySelectorAll('#proj-steps .opt').forEach((b,j)=>{if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes(`'${pid}',${si}`)){b.disabled=true;if(j%st.opts.length===st.ans)b.classList.add('correct');else if(j%st.opts.length===oi&&!ok)b.classList.add('wrong');}});const fb=document.getElementById('pfb-'+pid+'-'+si);fb.style.display='block';fb.className='fb '+(ok?'ok':'bad');fb.innerHTML='<strong>'+(ok?'✓ Correct!':'✗ Wrong')+'</strong>'+st.e;if(ok)document.getElementById('pnxt-'+pid+'-'+si).style.display='block';}
+function projCalc(pid,si){const p=PROJECTS.find(x=>x.id===pid);const st=p.steps[si];const val=parseFloat((document.getElementById('pi-'+pid+'-'+si).value||'').replace(',','.'));const fb=document.getElementById('pfb-'+pid+'-'+si);if(isNaN(val)){fb.style.display='block';fb.className='fb bad';fb.innerHTML='<strong>Invalid</strong>';return;}const ok=Math.abs(val-st.a)<=st.tol;fb.style.display='block';fb.className='fb '+(ok?'ok':'bad');fb.innerHTML='<strong>'+(ok?'✓ Correct!':'✗ Wrong — answer is '+st.a+' '+st.u)+'</strong>'+st.e;if(ok)document.getElementById('pnxt-'+pid+'-'+si).style.display='block';}
+function projNext(pid,si){const a=getAcc();if(!a)return;if(!a.projProgress)a.projProgress={};const np=(a.projProgress[pid]||0)+1;a.projProgress[pid]=np;const p=PROJECTS.find(x=>x.id===pid);addXP(Math.round(p.xp/p.steps.length),'Project step');if(np>=p.steps.length&&!a.stats.projsDone.includes(pid)){a.stats.projsDone.push(pid);addXP(Math.round(p.xp*0.3),'Project complete!');}saveAcc(a);checkAchs(a);openProj(pid);}
+function backToProjects(){document.getElementById('proj-list').style.display='';document.getElementById('proj-detail').style.display='none';renderProjList();}
+// ── PROFILE ──
+function renderProfile(){const a=getAcc();if(!a)return;const li=getLvl(a.xp);document.getElementById('pr-av').textContent=a.avatar;document.getElementById('pr-name').textContent=a.username;document.getElementById('pr-title').textContent=li.i+' '+li.t+' · Level '+li.l;document.getElementById('pr-fill').style.width=li.pct+'%';document.getElementById('pr-xt').textContent=a.xp+' / '+(li.nx?li.nx.xp:a.xp)+' XP';document.getElementById('pr-qt').textContent=a.stats.qT||0;document.getElementById('pr-qp').textContent=a.stats.qT?Math.round(a.stats.qC/a.stats.qT*100)+'%':'—';document.getElementById('pr-pj').textContent=(a.stats.projsDone.length)+'/'+PROJECTS.length;document.getElementById('pr-rh').textContent=a.stats.raceH||'—';const earned=ACHS.filter(ac=>a.achievements.includes(ac.k));document.getElementById('pr-badges').innerHTML=earned.slice(-6).map(ac=>`<div class="ach"><div class="ach-em">${ac.i}</div><div class="ach-t">${ac.t}</div></div>`).join('')||'<div style="color:var(--txt3);font-size:.75rem;grid-column:span 3;">No badges yet!</div>';renderAllBadges(a);renderLBs();renderSettings(a);renderAccList();}
+function renderAllBadges(a){document.getElementById('all-badges').innerHTML=ACHS.map(ac=>`<div class="ach${a.achievements.includes(ac.k)?'':' locked'}"><div class="ach-em">${ac.i}</div><div class="ach-t">${ac.t}</div><div class="ach-x">${ac.x>0?'+'+ac.x+' XP':''}</div></div>`).join('');}
+function renderLBs(){try{const lb=JSON.parse(localStorage.getItem('cp_lb')||'[]');const a=getAcc();const M=['🥇','🥈','🥉'];const byXP=[...lb].sort((a,b)=>b.xp-a.xp);const byR=[...lb].filter(e=>e.race>0).sort((a,b)=>b.race-a.race);document.getElementById('lb-xp').innerHTML=byXP.length?byXP.slice(0,10).map((e,i)=>`<div class="lb-row${a&&e.u===a.username?' me':''}"><span class="lb-rank">${M[i]||i+1}</span><span class="lb-av2">${e.av||'👤'}</span><span class="lb-name">${e.u}</span><span class="lb-xp2">${e.xp} XP</span></div>`).join(''):'<div style="padding:12px;color:var(--txt3);font-size:.8rem;">No data yet</div>';document.getElementById('lb-race').innerHTML=byR.length?byR.slice(0,10).map((e,i)=>`<div class="lb-row${a&&e.u===a.username?' me':''}"><span class="lb-rank">${M[i]||i+1}</span><span class="lb-av2">${e.av||'👤'}</span><span class="lb-name">${e.u}</span><span class="lb-xp2">${e.race} pts</span></div>`).join(''):'<div style="padding:12px;color:var(--txt3);font-size:.8rem;">Play Race Mode to appear here!</div>';}catch(e){}}
+function renderSettings(a){const d=a.settings.difficulty||'normal';document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('on'));document.querySelectorAll('.diff-btn')[{easy:0,normal:1,hard:2}[d]||1].classList.add('on');document.getElementById('diff-desc').textContent={easy:'Easy: hints always visible, no timer, extra encouragement.',normal:'Normal: hints on request, no timer, standard feedback.',hard:'Hard: no hints, 15-second timer, higher XP rewards.'}[d];}
+function renderAccList(){document.getElementById('acc-list').innerHTML=getAllUsers().map(u=>{try{const a=JSON.parse(localStorage.getItem('cp_u_'+u)||'{}');const li=getLvl(a.xp||0);const cur=getAcc()?.username===u;return`<div class="sw-btn"><span class="sw-av">${a.avatar||'👤'}</span><span class="sw-name">${u}${cur?' (active)':''}</span><span class="sw-lv">Lv.${li.l}</span>${!cur?`<button style="font-size:10px;padding:3px 8px;border:1px solid var(--grn);border-radius:6px;background:transparent;color:var(--grn);cursor:pointer;" onclick="switchTo('${u}')">Switch</button>`:''}</div>`;}catch(e){return '';}}).join('');}
+function setDiff(d,btn){const a=getAcc();if(!a)return;a.settings.difficulty=d;saveAcc(a);renderSettings(a);}
+// ── UTILS ──
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function addSwipe(el,left,right){let sx=0,sy=0;el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});el.addEventListener('touchend',e=>{const dx=sx-e.changedTouches[0].clientX;const dy=sy-e.changedTouches[0].clientY;if(Math.abs(dx)>Math.abs(dy)*1.3&&Math.abs(dx)>44){if(dx>0)left();else right();}});}
+// ── INIT ──
+function init(){
+  const a=getAcc();
+  if(!a){document.getElementById('reg-ov').style.display='flex';document.getElementById('av-grid').innerHTML=AVS.map((av,i)=>`<button class="av-btn${i===0?' sel':''}" onclick="document.querySelectorAll('.av-btn').forEach(b=>b.classList.remove('sel'));this.classList.add('sel')">${av}</button>`).join('');return;}
+  updateStreak(a);saveAcc(a);
+  qOrd=shuffle([...Array(QUIZ.length).keys()]);
+  fcOrd=[...Array(CARDS.length).keys()];
+  updateHdr();updateHomeStats();
+  renderSlide();renderQ();renderCalc2();renderCard();renderWC();renderFH();renderRepair();renderProjList();renderCollection();renderSkillTree();renderBlueprints();
+  rcUpdate();ledUpdate();ohmUpdate();gateUpdate();
+  addSwipe(document.getElementById('sl-card'),nextSlide,prevSlide);
+  addSwipe(document.getElementById('fc-wrap'),()=>fcFlip&&cardResult(false),()=>fcFlip&&cardResult(true));
+  addSwipe(document.getElementById('r-card'),()=>rFlip&&raceAns(false),()=>rFlip&&raceAns(true));
+  document.getElementById('ca-inp').addEventListener('keydown',e=>{if(e.key==='Enter')checkCalc();});
+}
+window.addEventListener('load',init);
+</script>
+</body>
+</html>
